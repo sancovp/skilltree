@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>skilltree — give your skills the tree they were named for</title>
+  <meta name="description" content="Claude Code loads .claude/skills flat — one layer, no nesting — so a big skill library melts into context every turn. skilltree imposes the tree the substrate won't, and keeps it coherent."/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <nav class="topnav">
+    <a class="brand" href="index.html">🌳 skilltree</a>
+    <div class="topnav-links">
+      <a href="#how">How it works</a>
+      <a href="#verified">Verified</a>
+      <a href="blog.html">📓 Dev Log</a>
+      <a class="gh" href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">★ GitHub</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ───────────────────────────────────────────────────── -->
+  <header class="hero">
+    <p class="eyebrow">A navigable tree over flat skill dirs · open source · MIT</p>
+    <h1 class="hero-h1">Give your skills the<br/>tree they were <span class="grad">named for</span>.</h1>
+    <p class="hero-sub">
+      Claude Code loads <code>.claude/skills</code> <b>flat</b> — one layer, no nesting — so a hundred
+      skills land in context every turn and tool-selection degrades as the set grows. <b>skilltree</b>
+      imposes the tree the substrate won't, so you <b>load one layer and walk</b> instead of loading the pile.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">★ Get it on GitHub</a>
+      <a class="btn btn-ghost" href="#how">See how it works ↓</a>
+    </div>
+    <p class="proof-line">56 tests passing · Python 3.11+ · lossless + reversible · verified against the runtime, not asserted</p>
+  </header>
+
+  <main>
+
+    <!-- ── THE TURN ─────────────────────────────────────────────── -->
+    <section class="band turn" id="how">
+      <p class="kicker">The problem you already feel</p>
+      <h2 class="band-h">A flat skill folder is a forest with no paths.</h2>
+      <p class="lede">
+        <code>~/.claude/skills</code> auto-loads <b>one layer</b>, and a <code>.claude</code> nested inside
+        another <code>.claude</code> never loads. At ten skills that's fine; at a hundred it's <i>melt</i> —
+        the whole pile is in context before you ask anything. The platform ships the nodes and forbids the edge.
+      </p>
+      <p class="lede big">
+        skilltree uses the three levers the platform leaves open — <b>nested plain-dir placement</b> (the path
+        is the coordinate), the <b>inert-nested-<code>.claude</code> boundary</b> (only the top auto-loads), and
+        <b>breadcrumbs</b> — to render a real tree you descend on demand.
+      </p>
+    </section>
+
+    <!-- ── THE FIX ──────────────────────────────────────────────── -->
+    <section class="feat">
+      <div class="feat-text">
+        <p class="kicker">The front half</p>
+        <h2>Discover. Cohere. Emit.<br/>And undo it exactly.</h2>
+        <p>
+          Point it at any flat <code>.claude/skills</code>. It reads the tree that's actually there,
+          reports where it drifted, and tree-ifies it <b>in place</b> — moving each skill <i>whole</i>
+          (every file kept), journaling every move so <code>unemit</code> restores it byte-for-byte.
+        </p>
+        <p class="benefit-tag">→ Nothing is destroyed. Every change is a move with a receipt.</p>
+      </div>
+      <div class="feat-code">
+<pre><code>skilltree cohere ~/.claude
+<span class="cmt"># ⚠ bare_forest: 132 top skills, no root</span>
+skilltree emit ~/.claude --root-forest
+<span class="cmt"># tree-ified, lossless, journaled</span>
+skilltree unemit ~/.claude
+<span class="cmt"># ...and back, byte-for-byte</span></code></pre>
+      </div>
+    </section>
+
+    <!-- ── VERIFIED ─────────────────────────────────────────────── -->
+    <section class="band" id="verified">
+      <p class="kicker">Verified against the runtime — not asserted</p>
+      <h2 class="band-h">Every load-bearing fact here was observed, not guessed.</h2>
+      <p class="lede">
+        skilltree rests on one fact about how Claude Code loads context. We didn't take it on faith —
+        we planted a marker skill, accessed files different ways, and watched the model's tool menu change.
+        The substrate is the oracle.
+      </p>
+      <ul class="checklist">
+        <li><b>Read a file in a project dir → its <code>CLAUDE.md</code> + rules + skills inject</b> — dynamically, one layer. <i>(Descent is real and in-session.)</i></li>
+        <li><b>A <code>.claude</code> nested below the dir you're in does <u>not</u> load</b> — the flatness is enforced; depth is invisible until entered.</li>
+        <li><b>The trigger is the Read <u>tool</u>, not <code>cat</code></b> — a shell <code>cat</code> of the same file injects nothing. <i>(That's why the breadcrumbs say "Read," not "cat" — a literal <code>cat</code> would silently fail to descend.)</i></li>
+      </ul>
+      <p class="lede">
+        Those three facts are the whole mechanism — the disease (flat melts) and the cure (a tree you Read down).
+        How they were found, and the bug they caught along the way, is the <a href="blog.html">Dev Log</a>.
+      </p>
+    </section>
+
+    <!-- ── SELF-MANAGEMENT ──────────────────────────────────────── -->
+    <section class="feat">
+      <div class="feat-text">
+        <p class="kicker">It keeps itself honest</p>
+        <h2>A tree that maintains its own coherence.</h2>
+        <p>
+          A structure the platform won't maintain decays back to the forest it replaced — so skilltree
+          watches itself. A scheduled check writes its verdict into a single managed rule, so a
+          decohered tree announces itself in every session: <i>"you drifted — here's the shape, recohere it."</i>
+        </p>
+        <p class="benefit-tag">→ Detection is automatic; the fix is one command (<code>emit</code>).</p>
+      </div>
+      <div class="feat-code">
+<pre><code>skilltree watch ~/.claude --interval 300
+<span class="cmt"># every 5 min: cohere → rewrite</span>
+<span class="cmt"># ~/.claude/rules/00-system-notifications</span>
+<span class="cmt"># "None. Systems nominal." ⇄ 🔴 ERROR</span></code></pre>
+      </div>
+    </section>
+
+    <!-- ── CTA ──────────────────────────────────────────────────── -->
+    <section class="band cta-band">
+      <h2 class="band-h">One install. Your skills become a tree.</h2>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">★ Get it on GitHub</a>
+        <a class="btn btn-ghost" href="blog.html">Read the Dev Log →</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>skilltree · MIT · built and verified against the live runtime. <a href="blog.html">📓 Dev Log</a> · <a href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
+</body>
+</html>

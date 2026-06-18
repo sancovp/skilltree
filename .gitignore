@@ -18,5 +18,8 @@ venv/
 .emit-journal.json
 skilltree.json
 
+# dev-local preview config (not source)
+/.claude/launch.json
+
 # OS
 .DS_Store
