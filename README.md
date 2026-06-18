@@ -107,8 +107,8 @@ Full detail in **[ROADMAP.md](ROADMAP.md)** — generated from [`roadmap.json`](
 
 Two papers document the project:
 
-- **"Flat versus Tree: Why Agent Skills Need a Graph"** — *the why.* The structural argument: a flat skill substrate starves the faculty agents actually run on; the correction is a tree traversed in `O(depth)`, not loaded in `O(#tools)`. *(File/URL: **TBD — to be supplied.**)*
-- **The skilltree systems paper** — *the how.* The coordinate scheme, the Read-breadcrumb tree, the `discover`/`cohere`/`emit`/`unemit` self-coherence loop, and the runtime-verified load mechanic. *(File/URL: **TBD — to be supplied.**)*
+- **"Flat versus Tree: Why Agent Skills Need a Graph"** — *the why.* The structural argument: a flat skill substrate starves the faculty agents actually run on; the correction is a tree traversed in `O(depth)`, not loaded in `O(#tools)`. → [`papers/flat-vs-tree.md`](papers/flat-vs-tree.md)
+- **"Coordinate-Addressed Skill Trees: Progressive Disclosure on a Flat Filesystem"** — *the how.* The coordinate scheme, the Read-breadcrumb tree, the `discover`/`cohere`/`emit`/`unemit` self-coherence loop, and the runtime-verified load mechanic. → [`papers/skilltree-paper.md`](papers/skilltree-paper.md)
 
 > arXiv submission is **pending an endorser**.
 
