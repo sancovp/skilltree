@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skilltree"
+version = "0.1.0"
+description = "A tree of skill dirs wired by links, with programmatic validation"
+requires-python = ">=3.11"
+dependencies = ["click"]
+
+[project.scripts]
+skilltree = "skilltree.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# venvs
+.venv/
+venv/
+
+# skilltree runtime artifacts (generated, not source)
+.index.db
+.emit-journal.json
+skilltree.json
+
+# OS
+.DS_Store
