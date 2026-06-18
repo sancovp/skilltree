@@ -14,6 +14,7 @@
     <div class="topnav-links">
       <a href="#how">How it works</a>
       <a href="#verified">Verified</a>
+      <a href="#roadmap-sec">Roadmap</a>
       <a href="blog.html">📓 Dev Log</a>
       <a class="gh" href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">★ GitHub</a>
     </div>
@@ -115,6 +116,25 @@ skilltree unemit ~/.claude
       </div>
     </section>
 
+    <!-- ── ROADMAP ──────────────────────────────────────────────── -->
+    <section class="band" id="roadmap-sec">
+      <p class="kicker">Roadmap <span id="updated" class="updated"></span></p>
+      <h2 class="band-h">Where it's going.</h2>
+      <p class="lede">
+        v1 ships on Claude Code — the one substrate whose load mechanic the tree exploits. v2 is
+        <b>per-format adapters</b> (not symlinks: the descent mechanic doesn't generalize — Codex resolves
+        once at cwd, Gemini eager-loads everything). v3 is chaining.
+      </p>
+      <div id="roadmap" class="roadmap"></div>
+    </section>
+
+    <!-- ── CHANGELOG ────────────────────────────────────────────── -->
+    <section class="band" id="changelog-sec">
+      <p class="kicker">Changelog</p>
+      <h2 class="band-h">What shipped.</h2>
+      <div id="changelog" class="changelog"></div>
+    </section>
+
     <!-- ── CTA ──────────────────────────────────────────────────── -->
     <section class="band cta-band">
       <h2 class="band-h">One install. Your skills become a tree.</h2>
@@ -127,8 +147,9 @@ skilltree unemit ~/.claude
   </main>
 
   <footer>
-    <p>skilltree · MIT · built and verified against the live runtime. <a href="blog.html">📓 Dev Log</a> · <a href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">GitHub</a></p>
+    <p><span id="project">skilltree</span> · <span id="tagline"></span> · MIT · built and verified against the live runtime. <a href="blog.html">📓 Dev Log</a> · <a href="https://github.com/sancovp/skilltree" target="_blank" rel="noopener">GitHub</a></p>
   </footer>
 
+  <script src="app.js"></script>
 </body>
 </html>

@@ -79,6 +79,19 @@ domain/B/.claude/skills/0.2-B/SKILL.md
 
 The root menu carries an index summary (so a query about `A1` still finds the branch that leads to it) and the descend breadcrumbs (the out-edges, expressed as the Read that loads them). A coordinate stands in for identity; a breadcrumb stands in for an edge — emulations of what a graph would hold natively.
 
+## Roadmap
+
+- **v1 — Claude Code** *(shipping)* — the tree, the front half (`discover`/`cohere`/`emit`/`unemit`), the decoherence watch. The descent mechanic is Claude-Code-specific by design.
+- **v2 — Cross-format adapters** — per-format, **not** symlinks: the descent mechanic doesn't generalize (Codex resolves once at cwd; Gemini eager-loads the whole tree). `SKILL.md` + `.agents/skills` is the portable foundation.
+- **v3 — Chaining** — compose skills into validated chains over the tree.
+
+Full detail in **[ROADMAP.md](ROADMAP.md)** — generated from [`roadmap.json`](roadmap.json) (the single source); the [site](site/index.html) renders it live. Run `python3 scripts/update_site.py` after editing the roadmap or changelog.
+
+## Changelog
+
+### v0.1.0 — 2026-06-18
+- Initial release. The Read-breadcrumb tree (`materialize` + the traversability `validate` gate); the front half — `discover` (fs→tree), `cohere` (drift report), `emit` (lossless, journaled tree-ify of a forest), `unemit` (exact undo); the decoherence `watch` writing a self-managed notification rule; the CLI; the site + Dev Log. The auto-load mechanic — Read-into-a-dir injects its layer, `cat` does not, nested doesn't load — was verified against the runtime, not asserted. 56 tests · Python 3.11+ · MIT.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

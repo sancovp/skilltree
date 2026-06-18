@@ -1,0 +1,53 @@
+{
+  "project": "skilltree",
+  "tagline": "A navigable tree over flat skill dirs.",
+  "updated": "2026-06-18",
+  "phases": [
+    {
+      "id": "v1",
+      "title": "Claude Code",
+      "status": "in_progress",
+      "blurb": "The tree, on the one substrate whose load mechanic it exploits. Shipping.",
+      "items": [
+        "Read-breadcrumb tree (materialize) + traversability gate (validate)",
+        "Front half: discover \u2192 cohere \u2192 emit \u2192 unemit (lossless, journaled)",
+        "Decoherence watch \u2192 self-managed notification rule",
+        "Auto-load mechanic verified against the runtime (not asserted)",
+        "56 tests \u00b7 CLI \u00b7 site + Dev Log \u00b7 the Flat-vs-Tree paper"
+      ]
+    },
+    {
+      "id": "v2",
+      "title": "Cross-format adapters",
+      "status": "planned",
+      "blurb": "Per-format adapters, NOT symlinks \u2014 the descent mechanic doesn't generalize.",
+      "items": [
+        "Verified: Codex resolves once at cwd; Gemini eager-loads the whole tree",
+        "Portable foundation: SKILL.md + .agents/skills + metadata progressive-disclosure",
+        "The index/breadcrumb skill (metadata-first routing) ports everywhere",
+        "Codex adapter: simulate descent (scope-flatten / relaunch-at-node)",
+        "Gemini adapter: gate the eager load (their unshipped issue #11488)"
+      ]
+    },
+    {
+      "id": "v3",
+      "title": "Chaining",
+      "status": "planned",
+      "blurb": "Compose skills into validated chains over the tree. After cross-format.",
+      "items": [
+        "Sequence skills into a checkable chain",
+        "Chains compose (a chain can chain a chain)",
+        "Gate the chain's form, not its content"
+      ]
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v0.1.0",
+      "date": "2026-06-18",
+      "changes": [
+        "Initial release. The Read-breadcrumb tree (`materialize` + the traversability `validate` gate); the front half \u2014 `discover` (fs\u2192tree), `cohere` (drift report), `emit` (lossless, journaled tree-ify of a forest), `unemit` (exact undo); the decoherence `watch` writing a self-managed notification rule; the CLI; the site + Dev Log. The auto-load mechanic \u2014 Read-into-a-dir injects its layer, `cat` does not, nested doesn't load \u2014 was verified against the runtime, not asserted. 56 tests \u00b7 Python 3.11+ \u00b7 MIT."
+      ]
+    }
+  ]
+}
