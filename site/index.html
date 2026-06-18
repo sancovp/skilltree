@@ -42,6 +42,103 @@
     <section class="band turn" id="how">
       <p class="kicker">The problem you already feel</p>
       <h2 class="band-h">A flat skill folder is a forest with no paths.</h2>
+
+      <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Left: flat skill folders all loading at once (the melt). Right: a tree where only one layer is lit and you Read down to descend."
+           style="width:100%;max-width:680px;display:block;margin:8px auto 4px;">
+        <style>
+          .ttl{font:700 13px ui-sans-serif,system-ui,sans-serif}
+          .cap{font:500 11px ui-sans-serif,system-ui,sans-serif;fill:#5e5e66}
+          .nlbl{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#15151a}
+          .panel{fill:#ffffff;stroke:#ececea;stroke-width:1.5;rx:14}
+          .edge{stroke:#c4c4bf;stroke-width:1.6;fill:none}
+          /* FLAT — every box pulses together = everything active = melt */
+          .flat{fill:#fdeee9;stroke:#e0876b;stroke-width:1.4;rx:5;animation:melt 1.6s ease-in-out infinite}
+          @keyframes melt{0%,100%{opacity:.3}50%{opacity:1}}
+          .a1{animation-delay:0s}.a2{animation-delay:.18s}.a3{animation-delay:.42s}
+          .a4{animation-delay:.66s}.a5{animation-delay:.12s}.a6{animation-delay:.54s}
+          .a7{animation-delay:.30s}.a8{animation-delay:.72s}.a9{animation-delay:.6s}
+          /* TREE — the lit layer descends: root → child → grandchild, on a 5s loop */
+          .node{fill:#ffffff;stroke:#c4c4bf;stroke-width:1.5;rx:6}
+          .dim{opacity:.4}
+          .litA{animation:litA 5s ease-in-out infinite}
+          .litB{animation:litB 5s ease-in-out infinite}
+          .litC{animation:litC 5s ease-in-out infinite}
+          @keyframes litA{0%,18%{fill:#eef4ff;stroke:#3b6fd4;stroke-width:2.2}30%,100%{fill:#fff;stroke:#c4c4bf;stroke-width:1.5}}
+          @keyframes litB{0%,24%{fill:#fff;stroke:#c4c4bf}34%,52%{fill:#eef4ff;stroke:#3b6fd4;stroke-width:2.2}62%,100%{fill:#fff;stroke:#c4c4bf;stroke-width:1.5}}
+          @keyframes litC{0%,58%{fill:#fff;stroke:#c4c4bf}68%,88%{fill:#eef4ff;stroke:#3b6fd4;stroke-width:2.2}100%{fill:#fff;stroke:#c4c4bf}}
+          /* the "Read" pulse traveling down the active spine */
+          .pulse{fill:#3b6fd4}
+          .pR1{animation:p1 5s ease-in-out infinite}
+          .pR2{animation:p2 5s ease-in-out infinite}
+          @keyframes p1{0%,20%{opacity:0;transform:translateY(0)}24%{opacity:1}30%{opacity:1;transform:translateY(38px)}34%,100%{opacity:0}}
+          @keyframes p2{0%,52%{opacity:0;transform:translateY(0)}56%{opacity:1}62%{opacity:1;transform:translateY(36px)}66%,100%{opacity:0}}
+          .rdlbl{font:700 10px ui-sans-serif,system-ui,sans-serif;fill:#3b6fd4;opacity:0}
+          .rd1{animation:rd1 5s ease-in-out infinite}.rd2{animation:rd2 5s ease-in-out infinite}
+          @keyframes rd1{0%,20%{opacity:0}26%,30%{opacity:1}36%,100%{opacity:0}}
+          @keyframes rd2{0%,52%{opacity:0}58%,62%{opacity:1}68%,100%{opacity:0}}
+          @media (prefers-reduced-motion:reduce){*{animation:none!important}.litA{fill:#eef4ff;stroke:#3b6fd4}}
+        </style>
+
+        <!-- ── FLAT panel ── -->
+        <rect class="panel" x="16" y="16" width="330" height="270"/>
+        <text class="ttl" x="36" y="44" fill="#c2553a">FLAT</text>
+        <text class="cap" x="74" y="44">— one auto-load layer, no edges</text>
+        <g>
+          <rect class="flat a1" x="36"  y="64"  width="86" height="40"/>
+          <rect class="flat a2" x="138" y="64"  width="86" height="40"/>
+          <rect class="flat a3" x="240" y="64"  width="86" height="40"/>
+          <rect class="flat a4" x="36"  y="116" width="86" height="40"/>
+          <rect class="flat a5" x="138" y="116" width="86" height="40"/>
+          <rect class="flat a6" x="240" y="116" width="86" height="40"/>
+          <rect class="flat a7" x="36"  y="168" width="86" height="40"/>
+          <rect class="flat a8" x="138" y="168" width="86" height="40"/>
+          <rect class="flat a9" x="240" y="168" width="86" height="40"/>
+        </g>
+        <text class="cap" x="36" y="238">every skill loads at once →</text>
+        <text class="ttl" x="36" y="258" fill="#c2553a">the melt.</text>
+
+        <!-- ── divider ── -->
+        <path class="edge" d="M362 150 h36" marker-end="url(#arr)"/>
+        <text class="cap" x="360" y="142" font-weight="700">emit</text>
+
+        <!-- ── TREE panel ── -->
+        <rect class="panel" x="414" y="16" width="330" height="270"/>
+        <text class="ttl" x="434" y="44" fill="#3b6fd4">TREE</text>
+        <text class="cap" x="476" y="44">— load one layer, Read down</text>
+
+        <!-- edges -->
+        <path class="edge" d="M579 92 V112 H512 V132"/>
+        <path class="edge" d="M579 92 V112 H648 V132"/>
+        <path class="edge" d="M512 170 V190 H486 V210"/>
+        <path class="edge" d="M512 170 V190 H560 V210"/>
+
+        <!-- root (lit first) -->
+        <rect class="node litA" x="524" y="62" width="110" height="30"/>
+        <text class="nlbl" x="579" y="81" text-anchor="middle">0-root</text>
+        <!-- children: A lit second, B stays dim (hidden-until-entered) -->
+        <rect class="node litB" x="464" y="132" width="96" height="28"/>
+        <text class="nlbl" x="512" y="150" text-anchor="middle">0.1-A</text>
+        <g class="dim"><rect class="node" x="600" y="132" width="96" height="28"/>
+          <text class="nlbl" x="648" y="150" text-anchor="middle">0.2-B</text></g>
+        <!-- grandchildren: A1 lit third, A2 dim -->
+        <rect class="node litC" x="440" y="210" width="92" height="26"/>
+        <text class="nlbl" x="486" y="227" text-anchor="middle">A1</text>
+        <g class="dim"><rect class="node" x="544" y="210" width="92" height="26"/>
+          <text class="nlbl" x="590" y="227" text-anchor="middle">A2</text></g>
+
+        <!-- Read pulses + labels -->
+        <circle class="pulse pR1" cx="579" cy="100" r="4"/>
+        <text class="rdlbl rd1" x="600" y="118">Read ↓</text>
+        <circle class="pulse pR2" cx="512" cy="172" r="4"/>
+        <text class="rdlbl rd2" x="430" y="196">Read ↓</text>
+
+        <text class="cap" x="434" y="262">only the lit layer is in context · the rest stays hidden</text>
+
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#c4c4bf"/></marker></defs>
+      </svg>
+
       <p class="lede">
         <code>~/.claude/skills</code> auto-loads <b>one layer</b>, and a <code>.claude</code> nested inside
         another <code>.claude</code> never loads. At ten skills that's fine; at a hundred it's <i>melt</i> —
@@ -90,6 +187,49 @@ skilltree unemit ~/.claude
         <li><b>A <code>.claude</code> nested below the dir you're in does <u>not</u> load</b> — the flatness is enforced; depth is invisible until entered.</li>
         <li><b>The trigger is the Read <u>tool</u>, not <code>cat</code></b> — a shell <code>cat</code> of the same file injects nothing. <i>(That's why the breadcrumbs say "Read," not "cat" — a literal <code>cat</code> would silently fail to descend.)</i></li>
       </ul>
+
+      <svg viewBox="0 0 720 196" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Reading a file with the Read tool injects that directory's skill into the menu; a shell cat of the same file injects nothing."
+           style="width:100%;max-width:660px;display:block;margin:6px auto 2px;">
+        <style>
+          .cmd{fill:#15151a;rx:7}
+          .cmdt{font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#e8e8ea}
+          .menu{fill:#ffffff;stroke:#ececea;stroke-width:1.5;rx:9}
+          .mt{font:700 10px ui-sans-serif,system-ui,sans-serif;fill:#9a9a96;letter-spacing:.06em}
+          .chip{rx:5}.chipbase{fill:#f2f2f0;stroke:#d8d8d4;stroke-width:1}
+          .chipt{font:600 11px ui-monospace,Menlo,monospace;fill:#5e5e66}
+          .arrow{stroke:#c4c4bf;stroke-width:1.8;fill:none}
+          .res{font:700 11px ui-sans-serif,system-ui,sans-serif}
+          .inject,.injt,.okmark{animation:inj 3.2s ease-in-out infinite}
+          @keyframes inj{0%,28%{opacity:0;transform:translateX(-5px)}45%,88%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(-5px)}}
+          .noflash{animation:nof 3.2s ease-in-out infinite}
+          @keyframes nof{0%,40%{opacity:0}52%,80%{opacity:1}100%{opacity:0}}
+          @media (prefers-reduced-motion:reduce){*{animation:none!important}.inject,.injt,.okmark{opacity:1}}
+        </style>
+        <!-- Read lane: injects a skill -->
+        <rect class="cmd" x="14" y="22" width="214" height="34"/>
+        <text class="cmdt" x="28" y="44">Read  foo/note.md</text>
+        <path class="arrow" d="M236 39 h44" marker-end="url(#ar2)"/>
+        <rect class="menu" x="300" y="14" width="406" height="52"/>
+        <text class="mt" x="316" y="32">SKILL MENU</text>
+        <rect class="chip chipbase" x="316" y="40" width="56" height="18"/><text class="chipt" x="328" y="53">alpha</text>
+        <rect class="chip chipbase" x="380" y="40" width="50" height="18"/><text class="chipt" x="391" y="53">beta</text>
+        <rect class="chip inject" x="440" y="40" width="92" height="18" fill="#e9f7ef" stroke="#16a34a" stroke-width="1.2"/>
+        <text class="chipt injt" x="452" y="53" fill="#16a34a">foo-skill</text>
+        <text class="res okmark" x="548" y="54" fill="#16a34a">＋ injected ✓</text>
+        <!-- cat lane: nothing -->
+        <rect class="cmd" x="14" y="120" width="214" height="34"/>
+        <text class="cmdt" x="28" y="142">cat   foo/note.md</text>
+        <path class="arrow" d="M236 137 h44" marker-end="url(#ar2)"/>
+        <rect class="menu" x="300" y="112" width="406" height="52"/>
+        <text class="mt" x="316" y="130">SKILL MENU</text>
+        <rect class="chip chipbase" x="316" y="138" width="56" height="18"/><text class="chipt" x="328" y="151">alpha</text>
+        <rect class="chip chipbase" x="380" y="138" width="50" height="18"/><text class="chipt" x="391" y="151">beta</text>
+        <text class="res noflash" x="446" y="152" fill="#c2553a">— nothing — ✗</text>
+        <defs><marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#c4c4bf"/></marker></defs>
+      </svg>
+
       <p class="lede">
         Those three facts are the whole mechanism — the disease (flat melts) and the cure (a tree you Read down).
         How they were found, and the bug they caught along the way, is the <a href="blog.html">Dev Log</a>.
