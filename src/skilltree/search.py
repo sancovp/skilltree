@@ -19,6 +19,28 @@ from pathlib import Path
 
 _COORD_NAME = re.compile(r"^([0-9][0-9.]*)-(.+)$")
 _FTS_TERMS = re.compile(r"\w+")
+DEFAULT_EXTS = (".md", ".txt", ".mdx", ".rst")     # folder-mode (foldersearch) corpus
+
+
+def _title(text: str, fallback: str) -> str:
+    """First real heading/line of a doc — the title for a non-SKILL.md file (folder mode)."""
+    for line in text.splitlines():
+        s = line.strip()
+        if s and not s.startswith("---"):
+            return s.lstrip("# ").strip()[:120]
+    return fallback
+
+
+def _corpus(root: Path, exts: "tuple[str, ...] | None"):
+    """The files to index. `exts=None` → SKILL.md only (tree mode, the default). `exts` given →
+    every text file with a matching extension (folder mode), skipping dotfiles."""
+    if exts is None:
+        yield from root.rglob("SKILL.md")
+    else:
+        for p in root.rglob("*"):
+            if (p.is_file() and p.suffix.lower() in exts
+                    and not any(part.startswith(".") for part in p.parts)):
+                yield p
 
 
 def _read_skill(md: Path) -> tuple[str, str, str, str, str, int]:
@@ -27,7 +49,7 @@ def _read_skill(md: Path) -> tuple[str, str, str, str, str, int]:
     ds = re.search(r"^\s*description:\s*(.+?)\s*$", txt, re.M)
     gl = re.search(r"^\s*glyphs:\s*(.+?)\s*$", txt, re.M)
     vs = re.search(r"^\s*version:\s*(\d+)", txt, re.M)
-    name = nm.group(1).strip() if nm else md.parent.name
+    name = nm.group(1).strip() if nm else _title(txt, md.stem)
     desc = ds.group(1).strip() if ds else ""
     glyphs = gl.group(1).strip() if gl else ""
     version = int(vs.group(1)) if vs else 1
@@ -45,19 +67,26 @@ def _logical(name: str) -> str:
 
 
 def build_index(root_dir: str | Path, db_path: str = ":memory:",
-                vocab=None) -> sqlite3.Connection:
-    """Index every SKILL.md under root_dir into an FTS5 table. Returns the connection.
+                vocab=None, *, exts: "tuple[str, ...] | None" = None) -> sqlite3.Connection:
+    """Index a corpus under `root_dir` into ONE FTS5/BM25 table. Returns the connection.
 
-    GlyphSteer integration: if `vocab` (a glyphsteer.Vocabulary) is given, each skill's
-    `glyphs:` frontmatter code is rendered to ASCII sentinel **tags** (indexed for
-    faceting — FTS5 drops the emoji itself); the raw glyph code is kept UNINDEXED for
-    display. `vocab=None` ⇒ original behaviour, no glyph columns used.
+    Two corpus modes, ONE engine:
+      - `exts=None` (default) → **tree mode**: index every `SKILL.md` (the skilltree/skillmap
+        corpus; coordinates come from each skill's `<coord>-<name>` frontmatter).
+      - `exts=(...)`           → **folder mode**: index every text file with a matching extension
+        (the former `foldersearch` — any folder; a file with no `<coord>-<name>` name has coord "").
+
+    The `--scope` filter in `search()` is the only difference between the two: it restricts to a
+    coordinate subtree when coordinates are present, and is simply unused on a plain folder.
+
+    GlyphSteer (optional): if `vocab` is given, each skill's `glyphs:` code is rendered to ASCII
+    sentinel **tags** (indexed for faceting; FTS5 drops the emoji); the raw code is kept for display.
     """
     con = sqlite3.connect(db_path)
     con.execute("CREATE VIRTUAL TABLE skills USING fts5(name, description, body, tags, "
                 "coord UNINDEXED, path UNINDEXED, glyphs UNINDEXED, version UNINDEXED)")
     rows = []
-    for md in Path(root_dir).rglob("SKILL.md"):
+    for md in _corpus(Path(root_dir), exts):
         coord, name, desc, body, glyphs, version = _read_skill(md)
         tags = " ".join(vocab.code_tags(glyphs)) if (vocab and glyphs) else ""
         rows.append((name, desc, body, tags, coord, str(md), glyphs, version))
@@ -106,6 +135,14 @@ def search(con: sqlite3.Connection, query: str, *, scope_coord: str | None = Non
 def search_tree(root_dir: str | Path, query: str, *, scope_coord: str | None = None,
                 facet: str | None = None, vocab=None, limit: int = 10,
                 newest_only: bool = False) -> list[dict]:
-    """Convenience: index a tree dir and search it in one call."""
+    """Convenience: index a SKILL.md tree and search it in one call."""
     return search(build_index(root_dir, vocab=vocab), query, scope_coord=scope_coord,
                   facet=facet, vocab=vocab, limit=limit, newest_only=newest_only)
+
+
+def search_folder(folder: str | Path, query: str, *, scope_coord: str | None = None,
+                  exts: "tuple[str, ...]" = DEFAULT_EXTS, limit: int = 10) -> list[dict]:
+    """Convenience (the folded `foldersearch` + `skillsearch`): index ANY folder's text files and
+    BM25-search them in one call. `scope_coord` restricts to a coordinate subtree when the folder
+    carries skilltree coordinates; on a plain folder it is simply coordinate-free search."""
+    return search(build_index(folder, exts=exts), query, scope_coord=scope_coord, limit=limit)

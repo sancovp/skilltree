@@ -6,7 +6,7 @@ edges are symlinks; descending a level = redirecting the active skills root.
 """
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .exchange import Exchange, Member, load_exchange
 from .exchange import build as build_exchange
@@ -30,7 +30,8 @@ from .reports import (
     resolve,
     summary as reports_summary,
 )
-from .search import build_index, search, search_tree
+from .search import build_index, search, search_tree, search_folder, DEFAULT_EXTS
+from .mapper import build_map, write_map
 from .cohere import (
     Finding, cohere, discover, emit, unemit,
     render_notifications, write_notifications, watch, NOTIFY_RULE,
@@ -54,6 +55,8 @@ __all__ = [
     "register_child", "local_resolver",
     "link_tree", "build_forest", "list_links", "unlink",
     "assign_coords", "skill_name",
+    "build_index", "search", "search_tree", "search_folder", "DEFAULT_EXTS",
+    "build_map", "write_map",
     "discover", "cohere", "emit", "unemit", "Finding",
     "render_notifications", "write_notifications", "watch", "NOTIFY_RULE",
     "report_missed", "mark_problem", "list_reports", "resolve", "reports_summary",

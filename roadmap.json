@@ -12,8 +12,9 @@
         "Read-breadcrumb tree (materialize) + traversability gate (validate)",
         "Front half: discover → cohere → emit → unemit (lossless, journaled)",
         "Decoherence watch → self-managed notification rule",
+        "tree / map / search subcommands (folded skillmap + foldersearch + skillsearch)",
         "Auto-load mechanic verified against the runtime (not asserted)",
-        "56 tests · CLI · site + Dev Log · the Flat-vs-Tree paper"
+        "62 tests · CLI · site + Dev Log · the Flat-vs-Tree paper"
       ]
     },
     {

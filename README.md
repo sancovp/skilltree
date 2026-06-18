@@ -59,6 +59,22 @@ emit("~/my-skills", root_forest=True)         # tree-ify, journaled
 materialize(SkillTree(TreeNode("root", "sc", children=[...])), "out/", coords=True)
 ```
 
+## Subcommands
+
+One CLI for the whole skill-substrate toolkit — `skilltree <command> …`:
+
+| Command | What it does |
+|---|---|
+| `tree <root>` | show the coordinate tree on disk (every node by its `<coord>-<name>` address) |
+| `map <folder> [--write]` | render a flat folder into **one** coordinate-addressed `CLAUDE.md` (Folder Map + addressable Index + branch summaries) — progressive disclosure over a flat pile |
+| `search <folder> <query> [--scope <coord>]` | FTS5/BM25 over **any** folder; `--scope` restricts to a coordinate subtree when the folder carries skilltree coordinates (a plain folder = coordinate-free search) |
+| `cohere <root>` | report drift between the on-disk tree and its coherent shape |
+| `emit <root> [--root-forest]` | re-cohere in place; `--root-forest` tree-ifies a bare forest (lossless, journaled) |
+| `unemit <root>` | reverse the last `emit`, byte-for-byte |
+| `discover` · `validate` · `build` · `notify` · `watch` | read a tree · gate breadcrumb-resolvability · materialize from a manifest · write the notification rule · run the decoherence cron |
+
+`map` and `search` **fold the former standalone `skillmap` / `foldersearch` / `skillsearch` seedlings into one product**: `map` uses skilltree's own coordinate code (`assign_coords` / `skill_name`, no vendored copy), and `search` is one FTS5/BM25 engine where `--scope` is the only difference between coordinate-free and tree-aware search. The `<coord>-<name>` frontmatter and the Read-breadcrumb format are preserved for backward compatibility.
+
 ## Self-management (it keeps itself coherent)
 
 A structure the platform won't maintain decays back to the flat forest it replaced — so `skilltree` maintains itself:
@@ -87,7 +103,19 @@ The root menu carries an index summary (so a query about `A1` still finds the br
 
 Full detail in **[ROADMAP.md](ROADMAP.md)** — generated from [`roadmap.json`](roadmap.json) (the single source); the [site](site/index.html) renders it live. Run `python3 scripts/update_site.py` after editing the roadmap or changelog.
 
+## Papers
+
+Two papers document the project:
+
+- **"Flat versus Tree: Why Agent Skills Need a Graph"** — *the why.* The structural argument: a flat skill substrate starves the faculty agents actually run on; the correction is a tree traversed in `O(depth)`, not loaded in `O(#tools)`. *(File/URL: **TBD — to be supplied.**)*
+- **The skilltree systems paper** — *the how.* The coordinate scheme, the Read-breadcrumb tree, the `discover`/`cohere`/`emit`/`unemit` self-coherence loop, and the runtime-verified load mechanic. *(File/URL: **TBD — to be supplied.**)*
+
+> arXiv submission is **pending an endorser**.
+
 ## Changelog
+
+### v0.2.0 — 2026-06-18
+- **Folded the `skillmap` / `foldersearch` / `skillsearch` seedlings into skilltree as subcommands — one product.** `skilltree map <folder> [--write]` renders a flat folder into one coordinate-addressed `CLAUDE.md`, using skilltree's **own** coordinate code (`assign_coords`/`skill_name` from `model.py`; the vendored copy is gone). `skilltree search <folder> <query> [--scope <coord>]` is **one** FTS5/BM25 engine over any folder — coordinate-free on a plain folder, coordinate-subtree-scoped when the folder carries skilltree coordinates (`foldersearch` + `skillsearch` unified; the `--scope` flag is the only difference). Added the `tree` view command. The `<coord>-<name>` frontmatter and the Read-breadcrumb format are preserved (backward compatible). Suite grew 56 → **62 tests**.
 
 ### v0.1.0 — 2026-06-18
 - Initial release. The Read-breadcrumb tree (`materialize` + the traversability `validate` gate); the front half — `discover` (fs→tree), `cohere` (drift report), `emit` (lossless, journaled tree-ify of a forest), `unemit` (exact undo); the decoherence `watch` writing a self-managed notification rule; the CLI; the site + Dev Log. The auto-load mechanic — Read-into-a-dir injects its layer, `cat` does not, nested doesn't load — was verified against the runtime, not asserted. 56 tests · Python 3.11+ · MIT.

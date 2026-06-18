@@ -118,31 +118,59 @@ def watch_cmd(root: Path, rules_dir: Path | None, interval: float, once: bool) -
     watch(root, rules_dir=rd, interval=interval, iterations=1 if once else None)
 
 
-@main.command(name="search")
+@main.command(name="tree")
 @click.argument("root", type=click.Path(exists=True, file_okay=False, path_type=Path))
+def tree_cmd(root: Path) -> None:
+    """Show the coordinate tree on disk — every node with its `<coord>-<name>` address —
+    by reading the live filesystem (the materialized / skilltree-mapped structure)."""
+    from .cohere import discover
+    from .model import skill_name
+    root_node = discover(root).root
+
+    def show(node, depth: int = 0) -> None:
+        click.echo("  " * depth + f"{skill_name(node)} ({node.kind})")
+        for c in node.children:
+            show(c, depth + 1)
+    show(root_node)
+
+
+@main.command(name="map")
+@click.argument("folder", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option("--write", is_flag=True, help="write CLAUDE.md into the folder (default: print to stdout)")
+def map_cmd(folder: Path, write: bool) -> None:
+    """Render a flat folder into ONE coordinate-addressed CLAUDE.md — a Folder Map + an
+    addressable Index + branch summaries — for progressive disclosure (open a branch, descend
+    to the coordinate you need). Uses skilltree's own coordinate scheme."""
+    from .mapper import build_map, write_map
+    if write:
+        click.echo(f"wrote {write_map(folder)}")
+    else:
+        click.echo(build_map(folder))
+
+
+@main.command(name="search")
+@click.argument("folder", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.argument("query")
-@click.option("--scope", "scope_coord", default=None, help="restrict to a coordinate subtree, e.g. 0.1")
-@click.option("--facet", default=None, help="GlyphSteer glyph to facet on, e.g. 🏆 (needs --legend)")
-@click.option("--legend", type=click.Path(exists=True, path_type=Path), default=None,
-              help="path to a GlyphSteer legend.json (glyph↔meaning↔tag)")
+@click.option("--scope", "scope_coord", default=None,
+              help="restrict to a coordinate subtree, e.g. 0.1 (when the folder carries skilltree coordinates)")
+@click.option("--ext", default=None, help="comma-separated extensions (default: .md,.txt,.mdx,.rst)")
 @click.option("--limit", default=10, type=int)
-def search_cmd(root, query, scope_coord, facet, legend, limit):
-    """BM25 search over a materialized tree, optionally scoped to a coordinate subtree
-    and/or faceted by a GlyphSteer glyph (with --legend)."""
-    from .search import search_tree
-    vocab = None
-    if legend:
-        from glyphsteer import load_legend, render_legend
-        vocab = load_legend(legend)
-        click.echo(render_legend(vocab))
-    hits = search_tree(root, query, scope_coord=scope_coord, facet=facet, vocab=vocab, limit=limit)
+def search_cmd(folder: Path, query: str, scope_coord: str | None, ext: str | None, limit: int) -> None:
+    """FTS5/BM25 search over ANY folder. `--scope` restricts to a coordinate subtree when the
+    folder carries skilltree coordinates; on a plain folder it is coordinate-free search."""
+    from .search import search_folder, DEFAULT_EXTS
+    exts = (tuple(e if e.startswith(".") else "." + e for e in ext.split(",")) if ext else DEFAULT_EXTS)
+    hits = search_folder(folder, query, scope_coord=scope_coord, exts=exts, limit=limit)
+    where = f" in {scope_coord}" if scope_coord else ""
     if not hits:
-        click.echo("(no matches)")
+        click.echo(f"(no matches{where} for: {query})")
         return
-    for h in hits:
+    click.echo(f"(top {len(hits)}{where} for: {query})\n")
+    for i, h in enumerate(hits, 1):
         coord = f"[{h['coord']}] " if h["coord"] else ""
-        badge = f"{h.get('glyphs')} " if h.get("glyphs") else ""
-        click.echo(f"  {badge}{coord}{h['name']} — {h['description']}")
+        desc = f" — {h['description']}" if h["description"] else ""
+        click.echo(f"{i}. {coord}{h['name']}{desc}")
+        click.echo(f"   {h['path']}")
 
 
 @main.command(name="report-missed")

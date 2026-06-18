@@ -12,8 +12,9 @@
         "Read-breadcrumb tree (materialize) + traversability gate (validate)",
         "Front half: discover \u2192 cohere \u2192 emit \u2192 unemit (lossless, journaled)",
         "Decoherence watch \u2192 self-managed notification rule",
+        "tree / map / search subcommands (folded skillmap + foldersearch + skillsearch)",
         "Auto-load mechanic verified against the runtime (not asserted)",
-        "56 tests \u00b7 CLI \u00b7 site + Dev Log \u00b7 the Flat-vs-Tree paper"
+        "62 tests \u00b7 CLI \u00b7 site + Dev Log \u00b7 the Flat-vs-Tree paper"
       ]
     },
     {
@@ -42,6 +43,13 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v0.2.0",
+      "date": "2026-06-18",
+      "changes": [
+        "**Folded the `skillmap` / `foldersearch` / `skillsearch` seedlings into skilltree as subcommands \u2014 one product.** `skilltree map <folder> [--write]` renders a flat folder into one coordinate-addressed `CLAUDE.md`, using skilltree's **own** coordinate code (`assign_coords`/`skill_name` from `model.py`; the vendored copy is gone). `skilltree search <folder> <query> [--scope <coord>]` is **one** FTS5/BM25 engine over any folder \u2014 coordinate-free on a plain folder, coordinate-subtree-scoped when the folder carries skilltree coordinates (`foldersearch` + `skillsearch` unified; the `--scope` flag is the only difference). Added the `tree` view command. The `<coord>-<name>` frontmatter and the Read-breadcrumb format are preserved (backward compatible). Suite grew 56 \u2192 **62 tests**."
+      ]
+    },
     {
       "version": "v0.1.0",
       "date": "2026-06-18",
