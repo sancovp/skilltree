@@ -3,11 +3,18 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "skilltree"
+name = "agent-skilltree"
 version = "0.2.0"
-description = "A tree of skill dirs wired by links, with programmatic validation"
+description = "A coordinate-addressed tree of agent skill dirs wired by cat/Read breadcrumbs, with programmatic validation."
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.11"
+authors = [{ name = "Isaac Wostrel-Rubin" }]
+keywords = ["skills", "agents", "skill-tree", "claude", "progressive-disclosure", "coordinate-addressing"]
 dependencies = ["click"]
+
+[project.urls]
+Homepage = "https://github.com/sancovp/skilltree"
 
 [project.scripts]
 skilltree = "skilltree.cli:main"
