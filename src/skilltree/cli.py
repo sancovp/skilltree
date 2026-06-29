@@ -227,7 +227,7 @@ def build_cmd(manifest: Path, root: Path) -> None:
         click.echo(f"  {'✗' if v.severity == 'error' else '⚠'} [{v.where}] {v.message}")
     if errors:
         raise SystemExit(f"✗ INVALID — {len(errors)} error(s)")
-    click.echo(f"✓ valid — root: cat {node_skill_md(root, tree.root.name)}")
+    click.echo(f"✓ valid — root: Read {node_skill_md(root, tree.root.name)}")
 
 
 @main.command(name="validate")
@@ -289,7 +289,7 @@ def demo() -> None:
         root = Path(tmp) / "cc_tree_test"
         materialize(tree, root)
 
-        click.echo("══ 1. only the ROOT auto-loads; everything else is reached by `cat` ══")
+        click.echo("══ 1. only the ROOT auto-loads; everything else is reached by the Read tool ══")
         rootmd = node_skill_md(root, "cc-skill-tree")
         click.echo(f"  auto-loaded: {rootmd}")
         click.echo("  ── its body (the breadcrumbs) ──")
@@ -298,7 +298,7 @@ def demo() -> None:
         click.echo("\n══ 2. follow a breadcrumb down to a leaf ══")
         debugmd = node_skill_md(root / "debug", "debug")
         leafmd = node_skill_md(root / "debug" / "symptom-attn", "symptom-attn")
-        click.echo(f"  cat {debugmd}  → then → cat {leafmd}")
+        click.echo(f"  Read {debugmd}  → then → Read {leafmd}")
 
         click.echo("\n══ 3. validate (the harness) ══")
         click.echo(f"  {'✓ valid' if not validate(root) else 'issues:'}")
