@@ -6,7 +6,12 @@ edges are symlinks; descending a level = redirecting the active skills root.
 """
 from __future__ import annotations
 
-__version__ = "0.2.0"
+# single source of truth = the installed dist (pyproject); can't drift from a literal again
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+try:
+    __version__ = _pkg_version("agent-skilltree")
+except PackageNotFoundError:        # running from a source checkout that isn't pip-installed
+    __version__ = "0.2.2"
 
 from .exchange import Exchange, Member, load_exchange
 from .exchange import build as build_exchange
