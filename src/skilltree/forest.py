@@ -95,9 +95,12 @@ def project(tree_dir: str | Path, target: str | Path, *,
     for nm in path[1:]:
         node_dir = node_dir / nm
 
+    holder = _skill_dir(node_dir, skill_name(vol))
     for row in vol.frameworks:              # each held framework, flat
-        src_dir = Path(row["skill_path"]).parent
-        p = _symlink(target / row["name"], src_dir, relative=rel)
+        rp = Path(row["skill_path"])
+        if not rp.is_absolute():            # relative rows resolve against the holder dir
+            rp = holder / rp
+        p = _symlink(target / row["name"], rp.parent, relative=rel)
         if p:
             links.append(p)
     # the holder itself (the volume's search/router skill) — skip when the target

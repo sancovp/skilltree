@@ -127,8 +127,11 @@ Two papers document the project:
   (`link_tree` is now a thin wrapper) with the flat auto-discoverable projection of a volume's held
   frameworks (tome rows + holder, self-clobber-guarded, relative-link-capable). `validate` grew the
   **tome-table round-trip**: manifest rows must appear in the table, every row's target must resolve,
-  undeclared table rows warn. CLI: `skilltree fold`, `skilltree project`. Fixed `--version` (the
-  click probe needed the `agent-skilltree` distribution name). Suite → **69 passing** (+10 tome tests).
+  undeclared table rows warn. CLI: `skilltree fold [--relative]`, `skilltree project`. **Repo-portable
+  tomes:** `fold(relative=True)` stores rows relative to the holder dir, so a committed tome validates
+  and projects from ANY checkout — the CI flow is `emit` (localize the breadcrumbs) then `validate`.
+  Fixed `--version` (the click probe needed the `agent-skilltree` distribution name). Suite →
+  **70 passing** (+11 tome tests).
 - Vocabulary: a branch holding frameworks is a **SkillVolume**; the overall corpus is a **SkillTome**
   ("nomicon" is the legacy alias). The table heading stays `## Frameworks` — existing table parsers
   keep working (verified against the reference atomizer end-to-end).

@@ -15,13 +15,15 @@ The flat deployment of a folded volume is `forest.project(policy="flat")`.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from .model import SkillTree, find_node, skill_name
 
 
 def fold(framework_dir: str | Path, *, into: str, tree_root: str | Path,
-         what_for: str | None = None, name: str | None = None) -> dict:
+         what_for: str | None = None, name: str | None = None,
+         relative: bool = False) -> dict:
     """Fold a framework's skill dir into a volume node's tome table — one row,
     idempotent by row name. Returns a report dict ({"ok": False, "error": ...} on
     a bad target — no partial writes happen in that case).
@@ -31,6 +33,10 @@ def fold(framework_dir: str | Path, *, into: str, tree_root: str | Path,
     tree_root      the materialized tree root (holds skilltree.json)
     what_for       the row's purpose text (default: the framework's description)
     name           the row name (default: the framework's frontmatter name, else dir name)
+    relative       store the row's skill_path RELATIVE to the volume node's skill dir
+                   (the holder SKILL.md's dir — the base every table parser normalizes
+                   against). Use for a repo-committed tome: the tree then validates and
+                   projects from ANY checkout location, not just this machine.
     """
     from .cohere import _front, _rewrite_node_md   # frontmatter parse + surgical rewrite
 
@@ -49,11 +55,18 @@ def fold(framework_dir: str | Path, *, into: str, tree_root: str | Path,
         return {"ok": False, "error": f"no node named/coord {into!r} in {manifest}"}
     node, path = hit
 
+    node_dir = tree_root
+    for nm in path[1:]:
+        node_dir = node_dir / nm
+    holder_dir = node_dir / ".claude" / "skills" / skill_name(node)
+
     front = _front(smd)
     row_name = name or front.get("name") or fdir.name
+    skill_path = (os.path.relpath(smd.resolve(), holder_dir.resolve()) if relative
+                  else str(smd.resolve()))
     row = {"name": row_name,
            "what_for": what_for or front.get("description", ""),
-           "skill_path": str(smd.resolve())}
+           "skill_path": skill_path}
     updated = False
     for i, r in enumerate(node.frameworks):
         if r.get("name") == row_name:       # idempotent: one row per framework
@@ -67,11 +80,7 @@ def fold(framework_dir: str | Path, *, into: str, tree_root: str | Path,
 
     # Surgical in-place rewrite of ONLY the folded node's SKILL.md (regenerates its
     # generated tail — table included — from the model; hand-written body preserved).
-    node_dir = tree_root
-    for nm in path[1:]:
-        node_dir = node_dir / nm
-    _rewrite_node_md(node_dir / ".claude" / "skills" / skill_name(node) / "SKILL.md",
-                     node, node_dir)
+    _rewrite_node_md(holder_dir / "SKILL.md", node, node_dir)
 
     return {"ok": True, "node": node.name, "coord": node.coord, "row": row,
             "updated": updated, "rows": len(node.frameworks)}

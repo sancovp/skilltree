@@ -98,6 +98,8 @@ def _check_tome(node: TreeNode, skill_md: Path, out: list[Violation]) -> None:
             out.append(Violation("error", node.name,
                 f"tome row {row['name']!r} declared in manifest but missing from the ## Frameworks table"))
         target = Path(row.get("skill_path", ""))
+        if not target.is_absolute():          # relative rows resolve against the holder dir
+            target = skill_md.parent / target
         if not target.is_file():
             out.append(Violation("error", node.name,
                 f"tome row {row['name']!r}: target does not resolve ({target})"))

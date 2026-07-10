@@ -152,6 +152,30 @@ def test_project_flat_self_clobber_guard(tmp_path: Path):
     assert node_skill_md(root / "patterns", "patterns").is_file()   # source intact
 
 
+def test_relative_fold_survives_relocation(tmp_path: Path):
+    # a repo-committed tome: relative rows must validate + project from ANY checkout path
+    site_a = tmp_path / "checkout_a"
+    site_a.mkdir()
+    root = _volume_tree(site_a)
+    fw = _framework(site_a, "alpha")
+    rep = fold(fw, into="patterns", tree_root=root, relative=True)
+    assert rep["ok"] and not Path(rep["row"]["skill_path"]).is_absolute()
+    assert is_valid(root)
+    # relocate the WHOLE checkout (tree + framework move together, like a fresh CI clone)
+    site_b = tmp_path / "checkout_b"
+    site_a.rename(site_b)
+    root_b = site_b / "tome_tree"
+    # breadcrumbs are absolute by design → a moved tree needs the localize step first:
+    # emit re-coheres at the NEW location from the manifest (the portable canon). The
+    # relative tome rows need no rewrite — that is the point of --relative.
+    assert emit(root_b)["ok"]
+    assert is_valid(root_b)                             # emit + validate = the CI gate flow
+    links = project(root_b, tmp_path / "flat_b", policy="flat", node="patterns")
+    assert (tmp_path / "flat_b" / "alpha").resolve() == (site_b / "fw-alpha").resolve()
+    # emit coordinatized the tree, so the holder projects under its coord identity
+    assert {p.name for p in links} == {"alpha", "0.1-patterns"}
+
+
 def test_project_progressive_matches_link_tree(tmp_path: Path):
     root = _volume_tree(tmp_path)
     a = tmp_path / "user_a"

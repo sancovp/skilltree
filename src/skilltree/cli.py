@@ -250,12 +250,15 @@ def validate_cmd(root: Path) -> None:
               help="the materialized tree root (holds skilltree.json)")
 @click.option("--what-for", default=None, help="the row's purpose text (default: the framework's description)")
 @click.option("--name", default=None, help="the row name (default: the framework's frontmatter name)")
+@click.option("--relative", is_flag=True,
+              help="store the row path relative to the volume node (repo-portable: validates/projects from any checkout)")
 def fold_cmd(framework_dir: Path, into: str, tree_root: Path, what_for: str | None,
-             name: str | None) -> None:
+             name: str | None, relative: bool) -> None:
     """Fold a FRAMEWORK_DIR into a volume node's tome table (idempotent, one row
     per framework). The manifest is updated and the node's SKILL.md regenerated."""
     from .tome import fold
-    rep = fold(framework_dir, into=into, tree_root=tree_root, what_for=what_for, name=name)
+    rep = fold(framework_dir, into=into, tree_root=tree_root, what_for=what_for, name=name,
+               relative=relative)
     if not rep.get("ok"):
         click.echo(f"✗ {rep.get('error')}")
         raise SystemExit(1)
