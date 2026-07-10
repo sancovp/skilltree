@@ -17,7 +17,7 @@ from __future__ import annotations
 from pathlib import Path
 import shutil
 
-from .model import SkillTree, TreeNode, assign_coords, compose_summary, skill_name
+from .model import SkillTree, TreeNode, assign_coords, compose_summary, skill_name, tome_table
 
 # A breadcrumb line is parseable by validate.py: `- <name> (<kind>): Read `<abspath>``
 # The verb is **Read** (the Read tool), NOT `cat`: only the Read tool injects a dir's
@@ -64,6 +64,12 @@ def _write_node(node: TreeNode, node_dir: Path, root: Path) -> None:
                 + "\n".join(crumbs))
     else:
         body = base + "\n\n_(leaf — this is an actual skill.)_"
+
+    # tome pointer-table (SkillVolume binding): generated LAST from the model rows, so
+    # cohere's in-place rewrite (which regenerates from the first generated heading to
+    # EOF) re-emits it instead of wiping it. See model.tome_table / tome.fold.
+    if node.frameworks:
+        body += f"\n\n{tome_table(node)}"
 
     if node.coord:
         desc = f"[{node.coord}] {desc}"

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-skilltree"
-version = "0.2.2"
+version = "0.3.0"
 description = "A coordinate-addressed tree of agent skill dirs wired by Read-tool breadcrumbs, with programmatic validation."
 readme = "README.md"
 license = { text = "MIT" }

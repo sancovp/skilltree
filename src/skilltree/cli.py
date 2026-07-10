@@ -12,7 +12,7 @@ from .validate import validate
 
 
 @click.group()
-@click.version_option(message="skilltree %(version)s")
+@click.version_option(package_name="agent-skilltree", message="skilltree %(version)s")
 def main() -> None:
     """SkillTree — a nested tree of skill dirs wired by `cat`-breadcrumbs (validated)."""
 
@@ -240,6 +240,45 @@ def validate_cmd(root: Path) -> None:
     if any(v.severity == "error" for v in issues):
         raise SystemExit("✗ INVALID")
     click.echo("✓ valid — every breadcrumb resolves.")
+
+
+@main.command(name="fold")
+@click.argument("framework_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option("--into", required=True, help="the volume node to bind into (name or coord)")
+@click.option("--tree", "tree_root", required=True,
+              type=click.Path(exists=True, file_okay=False, path_type=Path),
+              help="the materialized tree root (holds skilltree.json)")
+@click.option("--what-for", default=None, help="the row's purpose text (default: the framework's description)")
+@click.option("--name", default=None, help="the row name (default: the framework's frontmatter name)")
+def fold_cmd(framework_dir: Path, into: str, tree_root: Path, what_for: str | None,
+             name: str | None) -> None:
+    """Fold a FRAMEWORK_DIR into a volume node's tome table (idempotent, one row
+    per framework). The manifest is updated and the node's SKILL.md regenerated."""
+    from .tome import fold
+    rep = fold(framework_dir, into=into, tree_root=tree_root, what_for=what_for, name=name)
+    if not rep.get("ok"):
+        click.echo(f"✗ {rep.get('error')}")
+        raise SystemExit(1)
+    verb = "updated" if rep["updated"] else "added"
+    click.echo(f"✓ {verb} row {rep['row']['name']!r} on node {rep['node']!r} "
+               f"({rep['rows']} framework(s) held)")
+
+
+@main.command(name="project")
+@click.argument("tree_root", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.argument("target", type=click.Path(path_type=Path))
+@click.option("--policy", type=click.Choice(["progressive", "flat"]), default="progressive",
+              help="progressive = root + first-layer branches; flat = a volume's tome rows + holder")
+@click.option("--link", type=click.Choice(["absolute", "relative"]), default="absolute")
+@click.option("--node", default=None, help="(flat) the volume node to project (name or coord; default root)")
+def project_cmd(tree_root: Path, target: Path, policy: str, link: str, node: str | None) -> None:
+    """Project TREE_ROOT into TARGET (a skills dir) as symlinks — progressive
+    disclosure, or a volume's flat auto-discoverable deployment."""
+    from .forest import project
+    links = project(tree_root, target, policy=policy, link=link, node=node)
+    click.echo(f"✓ projected {len(links)} link(s) ({policy}, {link}) into {target}")
+    for p in links:
+        click.echo(f"  - {p.name} -> {p.readlink()}")
 
 
 @main.group()

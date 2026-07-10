@@ -26,6 +26,10 @@ class TreeNode:
     description: str | None = None   # SKILL.md description (so it auto-loads / is searchable)
     coord: str | None = None         # hierarchical address (e.g. "0.1.2"); set by assign_coords
     children: list["TreeNode"] = field(default_factory=list)
+    # tome pointer-table rows (the SkillVolume binding): each row registers a framework
+    # this node HOLDS — {"name", "what_for", "skill_path" (abs path to its SKILL.md)}.
+    # Rendered as the `## Frameworks` table by tome_table(); added by tome.fold().
+    frameworks: list[dict] = field(default_factory=list)
 
     def walk(self):
         yield self
@@ -67,6 +71,39 @@ def compose_summary(node: "TreeNode", *, full: bool = False) -> str:
             f"Reachable below: {', '.join(reachable)}.")
 
 
+TOME_HEADING = "## Frameworks"
+
+
+def tome_table(node: "TreeNode") -> str:
+    """Render a node's tome pointer-table (the `## Frameworks` registry) from the model.
+
+    The table is GENERATED — the manifest's `frameworks` rows are the source of truth,
+    and both materialize and cohere's in-place rewrite re-emit it (so a re-cohere can
+    never wipe or drift a folded row). The 'Framework skill' cell is `name (<abs path
+    to SKILL.md>)` — the exact shape the flat projector (`project(policy="flat")`, née
+    nomicon-atomize) parses. Columns grow Plugin/Chapter in Move 2.
+    """
+    lines = [TOME_HEADING, "",
+             "| Framework | What it's for | Framework skill |",
+             "|---|---|---|"]
+    for r in node.frameworks:
+        lines.append(f"| {r['name']} | {r.get('what_for', '')} | {r['name']} ({r['skill_path']}) |")
+    return "\n".join(lines)
+
+
+def find_node(root: "TreeNode", selector: str) -> tuple["TreeNode", list[str]] | None:
+    """Locate a node by NAME or COORD; returns (node, tree-path names root→node)."""
+    def walk(n: "TreeNode", path: list[str]):
+        if n.name == selector or (n.coord and n.coord == selector):
+            return n, path
+        for c in n.children:
+            hit = walk(c, path + [c.name])
+            if hit:
+                return hit
+        return None
+    return walk(root, [root.name])
+
+
 def assign_coords(root: "TreeNode", base: str = "0") -> "TreeNode":
     """Give every node a hierarchical coordinate: root=base, child i (1-based)=parent.i."""
     def walk(n: "TreeNode", coord: str) -> None:
@@ -86,6 +123,7 @@ class SkillTree:
         def enc(n: TreeNode) -> dict:
             return {"name": n.name, "kind": n.kind, "skill_src": n.skill_src,
                     "description": n.description, "coord": n.coord,
+                    "frameworks": [dict(r) for r in n.frameworks],
                     "children": [enc(c) for c in n.children]}
         return {"skilltree": enc(self.root)}
 
@@ -95,6 +133,7 @@ class SkillTree:
             return TreeNode(name=d["name"], kind=d.get("kind", "skill"),
                             skill_src=d.get("skill_src"), description=d.get("description"),
                             coord=d.get("coord"),
+                            frameworks=[dict(r) for r in d.get("frameworks", [])],
                             children=[dec(c) for c in d.get("children", [])])
         return SkillTree(dec(data["skilltree"]))
 

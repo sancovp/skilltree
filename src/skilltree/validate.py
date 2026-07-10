@@ -8,6 +8,9 @@ the things the filesystem won't:
   - every non-leaf node's body has a Read breadcrumb for EACH of its children
   - every breadcrumb path actually resolves to a file (no dead ends)
   - sibling names are unique (their dirs collide otherwise)
+  - tome-table round-trip: a node with `frameworks` rows carries the `## Frameworks`
+    table, every manifest row appears in it, and every row's target SKILL.md resolves
+    (an undeclared table row is a warning — the manifest is the source of truth)
 
 A non-empty error list is a kill-criterion: someone walking the tree hits a dead
 end the platform would never warn about.
@@ -18,11 +21,13 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 
-from .model import KINDS, SkillTree, TreeNode, skill_name
+from .model import KINDS, TOME_HEADING, SkillTree, TreeNode, skill_name
 
 # a breadcrumb is `- <name> (<kind>): Read `<abspath>`` — match the backticked SKILL.md path
 # (verb-agnostic, so it survives wording tweaks; the verb is the Read tool, never `cat`)
 _CRUMB_RE = re.compile(r"`([^`]+/SKILL\.md)`")
+# a tome-table data row: `| name | what-for | name (path) |` (skip header/separator rows)
+_TOME_ROW_RE = re.compile(r"^\|\s*([^|]+?)\s*\|[^|]*\|[^|]*\|\s*$", re.M)
 
 
 @dataclass
@@ -69,8 +74,36 @@ def _walk(node: TreeNode, node_dir: Path, out: list[Violation]) -> None:
             elif p not in expected:
                 out.append(Violation("warning", node.name, f"breadcrumb `{p}` is not a declared child"))
 
+    if node.frameworks:
+        _check_tome(node, skill_md, out)
+
     for child in node.children:
         _walk(child, node_dir / child.name, out)
+
+
+def _check_tome(node: TreeNode, skill_md: Path, out: list[Violation]) -> None:
+    """Tome-table round-trip: the manifest rows are the source of truth; the table
+    in SKILL.md must carry every one, and every row's target must resolve. An
+    undeclared table row is only a warning (fix by folding it or re-emitting)."""
+    text = skill_md.read_text(encoding="utf-8")
+    if TOME_HEADING not in text:
+        out.append(Violation("error", node.name,
+            "frameworks rows declared but no ## Frameworks table in SKILL.md (re-emit the node)"))
+        return
+    section = re.split(r"\n#{1,6} ", text.split(TOME_HEADING, 1)[1])[0]
+    in_table = {n for n in _TOME_ROW_RE.findall(section)
+                if n != "Framework" and not re.fullmatch(r":?-+:?", n)}
+    for row in node.frameworks:
+        if row["name"] not in in_table:
+            out.append(Violation("error", node.name,
+                f"tome row {row['name']!r} declared in manifest but missing from the ## Frameworks table"))
+        target = Path(row.get("skill_path", ""))
+        if not target.is_file():
+            out.append(Violation("error", node.name,
+                f"tome row {row['name']!r}: target does not resolve ({target})"))
+    for extra in sorted(in_table - {r["name"] for r in node.frameworks}):
+        out.append(Violation("warning", node.name,
+            f"table row {extra!r} is not declared in the manifest"))
 
 
 def validate(root: str | Path, tree: SkillTree | None = None) -> list[Violation]:

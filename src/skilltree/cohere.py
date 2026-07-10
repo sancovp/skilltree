@@ -24,14 +24,17 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .model import SkillTree, TreeNode, assign_coords, compose_summary, skill_name
+from .model import SkillTree, TreeNode, assign_coords, compose_summary, skill_name, tome_table
 
 # dirs that are never tree nodes
 _SKIP = {".claude", "kb", "__pycache__", ".git", "node_modules", ".aios.src"}
 # a coord-prefixed skill identity: "0.1.2-some-name" → ("0.1.2", "some-name")
 _COORD_RE = re.compile(r"^(\d+(?:\.\d+)*)-(.+)$")
-# everything from the first generated section to EOF (materialize appends them last)
-_SECT_RE = re.compile(r"\n+## Index summary\b.*\Z", re.S)
+# everything from the first generated section to EOF (materialize appends them last).
+# Generated sections, in emit order: Index summary → Descend (branches), then the
+# `## Frameworks` tome table (any node with frameworks rows) — leftmost heading wins,
+# so a leaf-with-table strips from Frameworks and a branch strips from Index summary.
+_SECT_RE = re.compile(r"\n+## (?:Index summary|Frameworks)\b.*\Z", re.S)
 _CRUMB_RE = re.compile(r"`([^`]+?)/SKILL\.md`")     # the path-before-SKILL.md, verb-agnostic
 _CRUMB = "- {name} ({kind}): Read `{path}`"          # the verb is the Read TOOL, never `cat`
 
@@ -251,6 +254,8 @@ def _rewrite_node_md(smd: Path, node: TreeNode, node_dir: Path) -> None:
                 "nothing; you must use the Read tool:\n\n" + "\n".join(crumbs))
     else:
         tail = ""
+    if node.frameworks:                     # regenerate the tome table from the model rows
+        tail += f"\n\n{tome_table(node)}"
     out = f"---\nname: {sname}\ndescription: {desc}\n---\n\n{base}{tail}\n"
     smd.write_text(out, encoding="utf-8")
 

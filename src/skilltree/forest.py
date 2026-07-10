@@ -5,15 +5,23 @@ non-recursive WITHIN a `.claude/skills` (a skill can't contain auto-loadable
 sub-skills). So to surface a tree from the top you SYMLINK its entry skill dirs
 into `~/.claude/skills`, and the `cat`-breadcrumbs carry you down from there.
 
-  - single tree  → `link_tree`: symlink the root (and its first-layer branches) up
-  - many trees   → `build_forest`: one forest-root skill that breadcrumbs to each
-                   tree's root, symlinked up — a forest view over the top.
+ONE projector, two policies (`project`):
+  - **progressive** → symlink the root (and its first-layer branches) up; deeper
+    levels stay behind Read-breadcrumbs (progressive disclosure). `link_tree` is
+    the thin compatibility wrapper.
+  - **flat** → project a volume node's tome-table rows (its held frameworks) +
+    the holder node itself as top-level skill dirs, so agents auto-discover every
+    framework (the nomicon-atomize semantics: the organized tree stays the source
+    of truth; the flat dir is only symlinks — edits propagate, nothing duplicates).
+  - many trees → `build_forest`: one forest-root skill that breadcrumbs to each
+    tree's root, symlinked up — a forest view over the top.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
-from .model import SkillTree, skill_name
+from .model import SkillTree, find_node, skill_name
 
 _CRUMB = "- {name} ({kind}): Read `{path}`"     # the Read TOOL injects the layer, not `cat`
 
@@ -22,35 +30,93 @@ def _skill_dir(node_dir: Path, name: str) -> Path:
     return Path(node_dir) / ".claude" / "skills" / name
 
 
-def _symlink(link: Path, target: Path) -> Path:
+def _symlink(link: Path, target: Path, *, relative: bool = False) -> Path | None:
+    """Idempotently (re)create `link` → `target` (a dir). Self-clobber guard: if the
+    link path IS the target (same path, symlinks not followed), do nothing and return
+    None — never unlink the source onto itself. `relative` makes the pair portable
+    when moved together (the doc-mirror vision-hyperedge pattern)."""
+    target_abs = Path(os.path.abspath(target))
+    if Path(os.path.abspath(link)) == target_abs:
+        return None
     link.parent.mkdir(parents=True, exist_ok=True)
     if link.is_symlink() or link.exists():
         link.unlink()
-    link.symlink_to(Path(target).resolve(), target_is_directory=True)
+    dst = os.path.relpath(target_abs, os.path.abspath(link.parent)) if relative else target_abs
+    link.symlink_to(dst, target_is_directory=True)
     return link
+
+
+def project(tree_dir: str | Path, target: str | Path, *,
+            policy: str = "progressive", link: str = "absolute",
+            node: str | None = None, manifest: str | Path | None = None,
+            include_root: bool = True, branches: bool = True) -> list[Path]:
+    """Project a tree into a skills dir — the ONE deployment op (Move 1).
+
+    policy="progressive"  surface the root (+ first-layer branches) as symlinks;
+                          deeper levels stay behind Read-breadcrumbs.
+    policy="flat"         project the selected node's tome-table rows (each held
+                          framework's skill dir) + the holder node itself, flat —
+                          every framework auto-discovers as a top-level skill
+                          (née nomicon-atomize). `node` selects the volume node by
+                          name or coord (default: the root).
+    link="absolute"|"relative"  symlink form (relative = portable-if-moved-together).
+
+    The tree stays the source of truth; the target holds only symlinks. Re-running
+    overwrites cleanly (idempotent). Self-clobber-guarded skips return no link.
+    """
+    tree_dir = Path(tree_dir)
+    tree = SkillTree.load(manifest or tree_dir / "skilltree.json")
+    target = Path(target)
+    rel = link == "relative"
+    links: list[Path] = []
+
+    if policy == "progressive":
+        if include_root:
+            rn = skill_name(tree.root)
+            p = _symlink(target / rn, _skill_dir(tree_dir, rn), relative=rel)
+            if p:
+                links.append(p)
+        if branches:
+            for child in tree.root.children:
+                cn = skill_name(child)
+                p = _symlink(target / cn, _skill_dir(tree_dir / child.name, cn), relative=rel)
+                if p:
+                    links.append(p)
+        return links
+
+    if policy != "flat":
+        raise ValueError(f"unknown policy {policy!r} (use 'flat' or 'progressive')")
+
+    hit = find_node(tree.root, node or tree.root.name)
+    if hit is None:
+        raise ValueError(f"no node named/coord {node!r} in the tree")
+    vol, path = hit
+    node_dir = tree_dir
+    for nm in path[1:]:
+        node_dir = node_dir / nm
+
+    for row in vol.frameworks:              # each held framework, flat
+        src_dir = Path(row["skill_path"]).parent
+        p = _symlink(target / row["name"], src_dir, relative=rel)
+        if p:
+            links.append(p)
+    # the holder itself (the volume's search/router skill) — skip when the target
+    # sits inside the holder's own dir (a symlink loop; the atomize guard)
+    if not os.path.abspath(target).startswith(os.path.abspath(node_dir) + os.sep):
+        p = _symlink(target / skill_name(vol), _skill_dir(node_dir, skill_name(vol)),
+                     relative=rel)
+        if p:
+            links.append(p)
+    return links
 
 
 def link_tree(tree_dir: str | Path, *, user_skills_dir: str | Path,
               manifest: str | Path | None = None,
               include_root: bool = True, branches: bool = True) -> list[Path]:
     """Symlink a single tree's entry points into the top-level user skills dir.
-
-    The root gives the overview + breadcrumbs; the branches (root's direct
-    children) are surfaced too so the first layer is reachable from the top.
-    Deeper levels stay behind `cat` (progressive disclosure).
-    """
-    tree_dir = Path(tree_dir)
-    tree = SkillTree.load(manifest or tree_dir / "skilltree.json")
-    user = Path(user_skills_dir)
-    links: list[Path] = []
-    if include_root:
-        rn = skill_name(tree.root)
-        links.append(_symlink(user / rn, _skill_dir(tree_dir, rn)))
-    if branches:
-        for child in tree.root.children:
-            cn = skill_name(child)
-            links.append(_symlink(user / cn, _skill_dir(tree_dir / child.name, cn)))
-    return links
+    (Thin wrapper over `project(policy="progressive", link="absolute")`.)"""
+    return project(tree_dir, user_skills_dir, policy="progressive", link="absolute",
+                   manifest=manifest, include_root=include_root, branches=branches)
 
 
 def build_forest(name: str, members: list[str | Path], *, user_skills_dir: str | Path,

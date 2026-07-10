@@ -11,14 +11,23 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 try:
     __version__ = _pkg_version("agent-skilltree")
 except PackageNotFoundError:        # running from a source checkout that isn't pip-installed
-    __version__ = "0.2.2"
+    __version__ = "0.3.0"
 
 from .exchange import Exchange, Member, load_exchange
 from .exchange import build as build_exchange
 from .exchange import is_valid as exchange_is_valid
 from .exchange import validate as validate_exchange
 from .materialize import materialize
-from .model import SkillTree, TreeNode, assign_coords, compose_summary, skill_name, assign_coords, skill_name
+from .model import (
+    TOME_HEADING,
+    SkillTree,
+    TreeNode,
+    assign_coords,
+    compose_summary,
+    find_node,
+    skill_name,
+    tome_table,
+)
 from .registry import (
     Entry,
     load_registry,
@@ -27,7 +36,8 @@ from .registry import (
     validate_registry,
 )
 from .registry import search as registry_search
-from .forest import build_forest, link_tree, list_links, unlink
+from .forest import build_forest, link_tree, list_links, project, unlink
+from .tome import fold
 from .reports import (
     list_reports,
     mark_problem,
@@ -58,7 +68,8 @@ __all__ = [
     "promote", "registry_search",
     "walk_federation", "flatten_federation", "validate_federation",
     "register_child", "local_resolver",
-    "link_tree", "build_forest", "list_links", "unlink",
+    "link_tree", "build_forest", "list_links", "unlink", "project",
+    "fold", "tome_table", "find_node", "TOME_HEADING",
     "assign_coords", "skill_name",
     "build_index", "search", "search_tree", "search_folder", "DEFAULT_EXTS",
     "build_map", "write_map",

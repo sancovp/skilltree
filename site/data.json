@@ -44,6 +44,14 @@
   ],
   "changelog": [
     {
+      "version": "v0.3.0",
+      "date": "2026-07-09",
+      "changes": [
+        "**The tome bind ops (SkillVolume/SkillTome).** A node can now HOLD frameworks: `TreeNode.frameworks`",
+        "Vocabulary: a branch holding frameworks is a **SkillVolume**; the overall corpus is a **SkillTome**"
+      ]
+    },
+    {
       "version": "v0.2.0",
       "date": "2026-06-18",
       "changes": [
