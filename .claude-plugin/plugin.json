@@ -1,0 +1,8 @@
+{
+  "name": "skilltree",
+  "version": "0.3.0",
+  "description": "skilltree — coordinate-addressed progressive disclosure for agent skills: turn a flat .claude/skills folder into a walkable tree (path = coordinate, depth = gate, Read = edge) so the model loads one layer and walks instead of loading the pile. Ships the skilltree skill; Claude pip-installs the CLI (agent-skilltree) itself on first use.",
+  "author": {
+    "name": "Isaac Rubin"
+  }
+}
