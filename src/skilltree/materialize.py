@@ -14,6 +14,7 @@ Leaves carry the actual skill content (from skill_src); no further breadcrumbs.
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 import shutil
 
@@ -29,8 +30,21 @@ def node_skill_md(node_dir: Path, node_name: str) -> Path:
     return node_dir / ".claude" / "skills" / node_name / "SKILL.md"
 
 
+def _yaml_scalar(v: str) -> str:
+    """Quote a frontmatter value when bare YAML would misparse it — e.g. a
+    coord-prefixed description `[0.8.4] …` reads as a flow sequence and
+    strict parsers reject the whole file (issue #1). json.dumps yields a
+    valid YAML double-quoted scalar."""
+    import json as _json
+    if re.match(r"[\[\{&*!|>%@`'\"]", v) or ": " in v or v.startswith("- "):
+        return _json.dumps(v)
+    return v
+
+
 def _front(name: str, description: str, body: str) -> str:
-    return f"---\nname: {name}\ndescription: {description}\n---\n\n{body.rstrip()}\n"
+    return (f"---\nname: {_yaml_scalar(name)}\n"
+            f"description: {_yaml_scalar(description)}\n---\n\n"
+            f"{body.rstrip()}\n")
 
 
 def _write_node(node: TreeNode, node_dir: Path, root: Path) -> None:
