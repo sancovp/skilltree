@@ -143,7 +143,8 @@ def build_forest(name: str, members: list[str | Path], *, user_skills_dir: str |
     body = (f"Forest **{name}** — {len(members)} skill tree(s). "
             "Pick one and **Read** (the Read tool) into its root to load it, then follow its "
             "breadcrumbs down (`cat` won't load it — only the Read tool does):\n\n" + "\n".join(crumbs))
-    (fdir / "SKILL.md").write_text(f"---\nname: {name}\ndescription: {desc}\n---\n\n{body}\n", encoding="utf-8")
+    from .materialize import _yaml_scalar as _ys
+    (fdir / "SKILL.md").write_text(f"---\nname: {_ys(name)}\ndescription: {_ys(desc)}\n---\n\n{body}\n", encoding="utf-8")
     return _symlink(Path(user_skills_dir) / name, fdir)
 
 
