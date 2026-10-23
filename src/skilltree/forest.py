@@ -65,6 +65,13 @@ def project(tree_dir: str | Path, target: str | Path, *,
     overwrites cleanly (idempotent). Self-clobber-guarded skips return no link.
     """
     tree_dir = Path(tree_dir)
+    # A projected tree is read THROUGH a symlink, where only an absolute breadcrumb resolves —
+    # so projecting is an install: localize the tree's breadcrumbs for this machine first.
+    # (A committed copy localized this way names this machine until `skilltree emit` is run
+    # again without --localize; the publishing gate refuses machine paths.)
+    if (tree_dir / "skilltree.json").is_file():
+        from .cohere import relink
+        relink(tree_dir, localize=True)
     tree = SkillTree.load(manifest or tree_dir / "skilltree.json")
     target = Path(target)
     rel = link == "relative"

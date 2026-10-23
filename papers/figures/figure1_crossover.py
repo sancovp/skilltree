@@ -124,7 +124,7 @@ cap = ("Model. flat(N)=150·N  (150 tok/def → 150k at N=1000, Anthropic's repo
 fig.text(0.5, -0.04, cap, ha="center", va="top", fontsize=6.8, color="#555555", wrap=True)
 
 fig.tight_layout()
-out = "/Users/isaacwr/fable_test/SSRI/ship/figures/figure1_crossover"
+out = __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "figure1_crossover")
 fig.savefig(out + ".svg", bbox_inches="tight", pad_inches=0.18)
 fig.savefig(out + ".png", dpi=200, bbox_inches="tight", pad_inches=0.18)
 print(f"crossover at N={cross_n} (flat={flat(cross_n):.0f}, tree={tree(np.array([cross_n]))[0]:.0f})")

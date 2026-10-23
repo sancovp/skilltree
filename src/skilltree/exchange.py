@@ -63,30 +63,35 @@ def _front(name: str, description: str, body: str) -> str:
     return f"---\nname: {name}\ndescription: {description}\n---\n\n{body.rstrip()}\n"
 
 
-def build(exchange: Exchange, repo_dir: str | Path) -> Path:
-    """Materialize every member tree + the master. Returns the master SKILL.md path."""
+def build(exchange: Exchange, repo_dir: str | Path, *, localize: bool = False) -> Path:
+    """Materialize every member tree + the master. Returns the master SKILL.md path.
+    Breadcrumbs are portable (relative to the repo) unless `localize=True`."""
     repo = Path(repo_dir)
     members: list[tuple[str, Path]] = []   # (member name, member root SKILL.md)
     for m in exchange.trees:
         tree = SkillTree.load((exchange.base / m.manifest).resolve())
         tree_dir = repo / "trees" / m.name
-        materialize(tree, tree_dir)
+        materialize(tree, tree_dir, localize=localize)
         members.append((m.name, node_skill_md(tree_dir, tree.root.name).resolve()))
 
     master_md = node_skill_md(repo, exchange.master)
     master_md.parent.mkdir(parents=True, exist_ok=True)
-    crumbs = [f"- {name} (tree): Read `{root_md}`" for name, root_md in members]
+    from .model import PORTABLE_NOTE, crumb_path
+    crumbs = [f"- {name} (tree): Read `{crumb_path(root_md, repo, localize=localize)}`"
+              for name, root_md in members]
     body = (f"Master of the **{exchange.name}** exchange — {len(members)} skill tree(s).\n\n"
             "## Trees — pick one and **Read** (the Read tool) into its root\n"
             "Only this master is loaded. Read a tree's root below to load it (a Bash `cat` won't); "
-            "each tree then walks its own breadcrumbs:\n\n"
+            "each tree then walks its own breadcrumbs." + ("" if localize else f" {PORTABLE_NOTE}")
+            + "\n\n"
             + "\n".join(crumbs))
     master_md.write_text(_front(exchange.master, f"master of the {exchange.name} exchange", body),
                          encoding="utf-8")
 
     (repo / "exchange.lock.json").write_text(json.dumps(
         {"name": exchange.name, "master": exchange.master,
-         "trees": [{"name": n, "root": str(r)} for n, r in members]}, indent=2), encoding="utf-8")
+         "trees": [{"name": n, "root": crumb_path(r, repo, localize=localize)} for n, r in members]},
+        indent=2), encoding="utf-8")
     return master_md
 
 
@@ -104,7 +109,8 @@ def validate(repo_dir: str | Path, exchange: Exchange) -> list[Violation]:
         return out
     if not _has_frontmatter(master_md):
         out.append(Violation("error", exchange.master, "master SKILL.md lacks frontmatter"))
-    found = {Path(p).resolve() for p in _CRUMB_RE.findall(master_md.read_text(encoding="utf-8"))}
+    found = {(Path(p) if Path(p).is_absolute() else repo / p).resolve()
+             for p in _CRUMB_RE.findall(master_md.read_text(encoding="utf-8"))}
     expected = {
         node_skill_md(repo / "trees" / m.name, SkillTree.load((exchange.base / m.manifest).resolve()).root.name).resolve()
         for m in exchange.trees

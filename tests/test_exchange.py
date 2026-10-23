@@ -35,8 +35,10 @@ def test_build_exchange_master_and_members(tmp_path: Path):
     assert exchange_is_valid(repo, ex)
     # master breadcrumbs into each member tree's root
     body = master.read_text()
-    assert str(node_skill_md(repo / "trees" / "cognition", "cognition").resolve()) in body
-    assert str(node_skill_md(repo / "trees" / "writing", "writing").resolve()) in body
+    # portable by default: relative to the master's folder (the repo), no machine path
+    assert "trees/cognition/.claude/skills/cognition/SKILL.md" in body
+    assert "trees/writing/.claude/skills/writing/SKILL.md" in body
+    assert str(tmp_path) not in body
     # each member tree is materialized + valid on its own
     assert node_skill_md(repo / "trees" / "cognition" / "reason", "reason").is_file()
 

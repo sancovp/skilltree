@@ -55,11 +55,14 @@ def cohere_cmd(root: Path) -> None:
 @click.argument("root", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.option("--root-forest", is_flag=True, help="tree-ify a bare forest (synthesize + save a root)")
 @click.option("--name", "forest_name", default=None, help="name for the synthesized root")
-def emit_cmd(root: Path, root_forest: bool, forest_name: str | None) -> None:
+@click.option("--localize", is_flag=True,
+              help="write breadcrumbs absolute for THIS machine (install time); default is portable")
+def emit_cmd(root: Path, root_forest: bool, forest_name: str | None, localize: bool) -> None:
     """Re-cohere IN PLACE: reassign coords + rewrite breadcrumbs/index from the
-    canonical shape (non-destructive). With --root-forest, root a bare forest."""
+    canonical shape (non-destructive). With --root-forest, root a bare forest.
+    Breadcrumbs are portable (relative to each node's folder) unless --localize."""
     from .cohere import emit
-    report = emit(root, root_forest=root_forest, forest_name=forest_name)
+    report = emit(root, root_forest=root_forest, forest_name=forest_name, localize=localize)
     if not report.get("ok"):
         click.echo(f"✗ {report.get('error')}")
         raise SystemExit(1)
@@ -68,6 +71,21 @@ def emit_cmd(root: Path, root_forest: bool, forest_name: str | None) -> None:
     click.echo(f"✓ emitted {report['nodes']} node(s) under {report['root']}{extra}{moves}")
     if report.get("journal"):
         click.echo(f"  journal: {report['journal']}  (reverse with `skilltree unemit`)")
+
+
+@main.command(name="relink")
+@click.argument("root", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option("--localize", is_flag=True, help="absolute paths for THIS machine (install time)")
+def relink_cmd(root: Path, localize: bool) -> None:
+    """Rewrite only the breadcrumb paths, in place: portable (the shipped form, relative to
+    each node's folder) or --localize (absolute, the install-time step). Nothing else moves."""
+    from .cohere import relink
+    report = relink(root, localize=localize)
+    if not report.get("ok"):
+        click.echo(f"✗ {report.get('error')}")
+        raise SystemExit(1)
+    form = "localized (absolute)" if localize else "portable (relative)"
+    click.echo(f"✓ relinked {report['nodes']} node(s): {form}")
 
 
 @main.command(name="unemit")
@@ -216,10 +234,12 @@ def reports_cmd(reports_path, kind):
 @main.command(name="build")
 @click.argument("manifest", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.argument("root", type=click.Path(path_type=Path))
-def build_cmd(manifest: Path, root: Path) -> None:
+@click.option("--localize", is_flag=True,
+              help="write breadcrumbs absolute for THIS machine; default is portable")
+def build_cmd(manifest: Path, root: Path, localize: bool) -> None:
     """Materialize a SkillTree from a JSON MANIFEST into ROOT, then validate."""
     tree = SkillTree.load(manifest)
-    materialize(tree, root)
+    materialize(tree, root, localize=localize)
     issues = validate(root)
     errors = [v for v in issues if v.severity == "error"]
     click.echo(f"built {len(tree.nodes())} nodes at {root}")
@@ -276,7 +296,8 @@ def fold_cmd(framework_dir: Path, into: str, tree_root: Path, what_for: str | No
 @click.option("--node", default=None, help="(flat) the volume node to project (name or coord; default root)")
 def project_cmd(tree_root: Path, target: Path, policy: str, link: str, node: str | None) -> None:
     """Project TREE_ROOT into TARGET (a skills dir) as symlinks — progressive
-    disclosure, or a volume's flat auto-discoverable deployment."""
+    disclosure, or a volume's flat auto-discoverable deployment. Projecting is an install:
+    TREE_ROOT's breadcrumbs are localized (absolute) for this machine first."""
     from .forest import project
     links = project(tree_root, target, policy=policy, link=link, node=node)
     click.echo(f"✓ projected {len(links)} link(s) ({policy}, {link}) into {target}")

@@ -23,7 +23,8 @@ import re
 
 from .model import KINDS, TOME_HEADING, SkillTree, TreeNode, skill_name
 
-# a breadcrumb is `- <name> (<kind>): Read `<abspath>`` — match the backticked SKILL.md path
+# a breadcrumb is `- <name> (<kind>): Read `<path>`` — match the backticked SKILL.md path;
+# the path is relative to the node's folder (portable) or absolute (localized)
 # (verb-agnostic, so it survives wording tweaks; the verb is the Read tool, never `cat`)
 _CRUMB_RE = re.compile(r"`([^`]+/SKILL\.md)`")
 # a tome-table data row: `| name | what-for | name (path) |` (skip header/separator rows)
@@ -64,7 +65,9 @@ def _walk(node: TreeNode, node_dir: Path, out: list[Violation]) -> None:
 
     if node.children:
         text = skill_md.read_text(encoding="utf-8")
-        found = {Path(m).resolve() for m in _CRUMB_RE.findall(text)}
+        # a portable breadcrumb is relative to the node's folder; a localized one is absolute
+        found = {(Path(m) if Path(m).is_absolute() else node_dir / m).resolve()
+                 for m in _CRUMB_RE.findall(text)}
         expected = {_skill_md(node_dir / c.name, skill_name(c)).resolve() for c in node.children}
         for missing in expected - found:
             out.append(Violation("error", node.name, f"no Read breadcrumb for child → {missing}"))

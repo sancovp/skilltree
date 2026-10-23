@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import os
 from pathlib import Path
 
 KINDS = ("ac", "cor", "sc", "skill")
@@ -69,6 +70,21 @@ def compose_summary(node: "TreeNode", *, full: bool = False) -> str:
     reachable = [d.name for d in node.walk() if d is not node]
     return (f"[{node.coord or '?'}] {node.name} — a {node.kind} index node; {short}. "
             f"Reachable below: {', '.join(reachable)}.")
+
+
+# A breadcrumb names its child's SKILL.md one of two ways. PORTABLE (the default): relative to
+# the node's folder — the folder that holds this SKILL.md's `.claude/` — so a tree carries no
+# machine's path and validates wherever it is copied. LOCALIZED: absolute, for a tree that is
+# installed or projected (read through a symlink, where only an absolute path resolves).
+PORTABLE_NOTE = ("Each path below is relative to this node's folder — the folder that holds this "
+                 "file's `.claude/` — so join it to that folder before you Read it.")
+
+
+def crumb_path(child_md: Path, node_dir: Path, *, localize: bool = False) -> str:
+    """The path a breadcrumb names (see PORTABLE_NOTE)."""
+    if localize:
+        return str(Path(child_md).resolve())
+    return Path(os.path.relpath(os.path.abspath(child_md), os.path.abspath(node_dir))).as_posix()
 
 
 TOME_HEADING = "## Frameworks"
@@ -138,13 +154,32 @@ class SkillTree:
         return SkillTree(dec(data["skilltree"]))
 
     def save(self, path: str | Path) -> Path:
+        """Write the manifest. Every `skill_src` is stored RELATIVE to the manifest's own
+        folder, so a committed manifest names no machine's path; `load` resolves it back."""
         p = Path(path)
-        p.write_text(json.dumps(self.to_manifest(), indent=2), encoding="utf-8")
+        data = self.to_manifest()
+        base = os.path.abspath(p.parent)
+
+        def rel(d: dict) -> None:
+            s = d.get("skill_src")
+            if s and os.path.isabs(s):
+                d["skill_src"] = Path(os.path.relpath(os.path.abspath(s), base)).as_posix()
+            for c in d.get("children", []):
+                rel(c)
+        rel(data["skilltree"])
+        p.write_text(json.dumps(data, indent=2), encoding="utf-8")
         return p
 
     @staticmethod
     def load(path: str | Path) -> "SkillTree":
-        return SkillTree.from_manifest(json.loads(Path(path).read_text(encoding="utf-8")))
+        """Read a manifest; a relative `skill_src` resolves against the manifest's folder."""
+        p = Path(path)
+        tree = SkillTree.from_manifest(json.loads(p.read_text(encoding="utf-8")))
+        base = os.path.abspath(p.parent)
+        for n in tree.root.walk():
+            if n.skill_src and not os.path.isabs(n.skill_src):
+                n.skill_src = os.path.normpath(os.path.join(base, n.skill_src))
+        return tree
 
     def nodes(self) -> list[TreeNode]:
         return list(self.root.walk())

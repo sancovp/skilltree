@@ -27,7 +27,8 @@ skilltree --help >/dev/null 2>&1 || pip install agent-skilltree
 |---|---|
 | `skilltree tree <root>` | show the coordinate tree on disk |
 | `skilltree cohere <root>` | report drift between reality and the coherent shape (a bare forest, stale breadcrumbs, flat drops) |
-| `skilltree emit <root> [--root-forest]` | re-cohere in place; `--root-forest` tree-ifies a flat forest (lossless — every move journaled) |
+| `skilltree emit <root> [--root-forest] [--localize]` | re-cohere in place; `--root-forest` tree-ifies a flat forest (lossless — every move journaled); breadcrumbs portable unless `--localize` |
+| `skilltree relink <root> [--localize]` | rewrite only the breadcrumb paths: portable (relative to each node's folder — what you commit and ship) or absolute for this machine (`--localize`, after installing a tree) |
 | `skilltree unemit <root>` | reverse the last emit, byte-for-byte |
 | `skilltree map <folder> [--write]` | render ANY flat folder as one coordinate-addressed index (progressive disclosure over a pile) |
 | `skilltree search <folder> <query> [--scope <coord>]` | FTS5/BM25 retrieval; `--scope` restricts to a coordinate subtree |

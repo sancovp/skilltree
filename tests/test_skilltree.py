@@ -30,8 +30,10 @@ def test_root_body_has_cat_breadcrumbs_for_each_child(tmp_path: Path):
     materialize(_tree(), root)
     body = node_skill_md(root, "cc-skill-tree").read_text()
     assert "cat" in body
-    assert str(node_skill_md(root / "a", "a").resolve()) in body
-    assert str(node_skill_md(root / "b", "b").resolve()) in body
+    # portable by default: each child's path relative to this node's folder, no machine path
+    assert "Read `a/.claude/skills/a/SKILL.md`" in body
+    assert "Read `b/.claude/skills/b/SKILL.md`" in body
+    assert str(tmp_path) not in body
 
 
 def test_dead_breadcrumb_is_caught(tmp_path: Path):

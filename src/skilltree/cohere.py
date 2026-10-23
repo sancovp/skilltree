@@ -24,7 +24,8 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .model import SkillTree, TreeNode, assign_coords, compose_summary, skill_name, tome_table
+from .model import (PORTABLE_NOTE, SkillTree, TreeNode, assign_coords, compose_summary, crumb_path,
+                    skill_name, tome_table)
 
 # dirs that are never tree nodes
 _SKIP = {".claude", "kb", "__pycache__", ".git", "node_modules", ".aios.src"}
@@ -217,7 +218,7 @@ def cohere(root: str | Path) -> list[Finding]:
 
 
 # ── emit: rewrite coords + breadcrumbs + index IN PLACE (non-destructive) ─────
-def _rewrite_node_md(smd: Path, node: TreeNode, node_dir: Path) -> None:
+def _rewrite_node_md(smd: Path, node: TreeNode, node_dir: Path, localize: bool = False) -> None:
     """Refresh ONLY the coord prefix + Index/Descend sections of an existing
     SKILL.md, preserving the hand-written body above them. Creates the file (a
     stub) if absent (e.g. a freshly synthesized forest root)."""
@@ -245,13 +246,15 @@ def _rewrite_node_md(smd: Path, node: TreeNode, node_dir: Path) -> None:
     if node.children:
         crumbs = [_CRUMB.format(
             name=skill_name(c), kind=c.kind,
-            path=(node_dir / c.name / ".claude" / "skills" / skill_name(c) / "SKILL.md").resolve())
+            path=crumb_path(node_dir / c.name / ".claude" / "skills" / skill_name(c) / "SKILL.md",
+                            node_dir, localize=localize))
             for c in node.children]
         tail = (f"\n\n## Index summary\n{compose_summary(node, full=True)}\n\n"
                 f"## Descend — the next layer ({len(node.children)})\n"
                 "Only this layer is loaded now. To descend, use the **Read tool** on a child "
                 "below — that injects the child's layer. A Bash `cat` reads the bytes but loads "
-                "nothing; you must use the Read tool:\n\n" + "\n".join(crumbs))
+                "nothing; you must use the Read tool."
+                + ("" if localize else f" {PORTABLE_NOTE}") + "\n\n" + "\n".join(crumbs))
     else:
         tail = ""
     if node.frameworks:                     # regenerate the tome table from the model rows
@@ -260,11 +263,47 @@ def _rewrite_node_md(smd: Path, node: TreeNode, node_dir: Path) -> None:
     smd.write_text(out, encoding="utf-8")
 
 
+def relink(root: str | Path, *, localize: bool = False) -> dict:
+    """Rewrite ONLY the breadcrumb paths of a materialized tree, in place: PORTABLE (relative
+    to each node's folder — the shipped form) or LOCALIZED (absolute for this machine — the
+    install-time step). Coords, names, bodies and tome tables are untouched."""
+    root = Path(root)
+    manifest = root / "skilltree.json"
+    if not manifest.is_file():
+        return {"ok": False, "error": f"no skilltree.json manifest at {root}"}
+    tree = SkillTree.load(manifest)
+    n = 0
+
+    def walk(node: TreeNode, node_dir: Path) -> None:
+        nonlocal n
+        smd = node_dir / ".claude" / "skills" / skill_name(node) / "SKILL.md"
+        if node.children and smd.is_file():
+            text = smd.read_text(encoding="utf-8")
+            for c in node.children:
+                child_md = node_dir / c.name / ".claude" / "skills" / skill_name(c) / "SKILL.md"
+                pat = re.compile(r"^(- " + re.escape(skill_name(c)) + r" \(" + re.escape(c.kind)
+                                 + r"\): Read `)[^`]+(`)", re.M)
+                path = crumb_path(child_md, node_dir, localize=localize)
+                text = pat.sub(lambda m: m.group(1) + path + m.group(2), text)
+            text = text.replace("you must use the Read tool:", "you must use the Read tool.")
+            text = text.replace(" " + PORTABLE_NOTE, "")
+            if not localize:
+                text = text.replace("you must use the Read tool.",
+                                    "you must use the Read tool. " + PORTABLE_NOTE, 1)
+            smd.write_text(text, encoding="utf-8")
+            n += 1
+        for c in node.children:
+            walk(c, node_dir / c.name)
+
+    walk(tree.root, root)
+    return {"ok": True, "nodes": n, "localized": localize}
+
+
 JOURNAL = ".emit-journal.json"   # the reversibility receipt written by a tree-ifying emit
 
 
 def emit(root: str | Path, *, root_forest: bool = False,
-         forest_name: str | None = None) -> dict:
+         forest_name: str | None = None, localize: bool = False) -> dict:
     """Re-cohere the tree IN PLACE: assign coords + rewrite every node's
     breadcrumbs/index from the canonical shape, without destroying content.
 
@@ -272,7 +311,10 @@ def emit(root: str | Path, *, root_forest: bool = False,
     a root, and **tree-ify it**: each flat leaf is MOVED WHOLESALE into its nested
     node-dir (all its files preserved — *not* a body-only re-render), so it stops
     auto-loading. Every move is JOURNALED to `.emit-journal.json` so `unemit` can
-    reverse it exactly (your cache-for-reversibility requirement)."""
+    reverse it exactly (your cache-for-reversibility requirement).
+
+    Breadcrumbs are written PORTABLE (relative to each node's folder) unless `localize=True`,
+    which writes them absolute for the place the tree is installed — the install-time step."""
     root = Path(root)
     manifest = root / "skilltree.json"
     synthesized = False
@@ -311,10 +353,10 @@ def emit(root: str | Path, *, root_forest: bool = False,
                 journal.append({"op": "move", "from": str(old_src), "to": str(target_dir),
                                 "skill_md": orig})
                 shutil.move(str(old_src), str(target_dir))
-            _rewrite_node_md(target_dir / "SKILL.md", node, node_dir)
+            _rewrite_node_md(target_dir / "SKILL.md", node, node_dir, localize)
         else:
             existed = (target_dir / "SKILL.md").exists()
-            _rewrite_node_md(target_dir / "SKILL.md", node, node_dir)
+            _rewrite_node_md(target_dir / "SKILL.md", node, node_dir, localize)
             if synthesized and not existed:        # a freshly-created node (the synth root)
                 journal.append({"op": "create", "path": str(target_dir)})
         n += 1

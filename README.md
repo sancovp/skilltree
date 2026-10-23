@@ -1,5 +1,13 @@
 # skilltree
 
+<!-- SCALABLE-PUBLISHING:AUTOGEN START (managed block — do not edit between these markers) -->
+
+[PyPI](https://pypi.org/project/agent-skilltree/) • [Marketplace](https://github.com/sancovp/sancrev-marketplace)
+
+📦 Auto-published from the monorepo • [CHANGELOG](./CHANGELOG.md) • [sancovp/skilltree](https://github.com/sancovp/skilltree)
+
+<!-- SCALABLE-PUBLISHING:AUTOGEN END -->
+
 Turn a **flat** folder of skills (or any `.claude` directory) into a **navigable tree** that a model can walk one layer at a time — and keep it coherent.
 
 Claude Code auto-loads `~/.claude/skills` (and a project's `.claude/skills`) **one layer deep**: every skill directory loads at once, and a `.claude` nested inside another `.claude` never loads. At a handful of skills that is fine; at a hundred it is *melt* — the whole pile lands in context every turn, and tool selection degrades as the set grows. The substrate ships the nodes and forbids the edge.
@@ -69,9 +77,10 @@ One CLI for the whole skill-substrate toolkit — `skilltree <command> …`:
 | `map <folder> [--write]` | render a flat folder into **one** coordinate-addressed `CLAUDE.md` (Folder Map + addressable Index + branch summaries) — progressive disclosure over a flat pile |
 | `search <folder> <query> [--scope <coord>]` | FTS5/BM25 over **any** folder; `--scope` restricts to a coordinate subtree when the folder carries skilltree coordinates (a plain folder = coordinate-free search) |
 | `fold <framework_dir> --into <node> --tree <root>` | **bind** a framework (its skill dir) into a volume node's `## Frameworks` tome table — idempotent, one row per framework; the manifest is the source of truth and the node's SKILL.md is regenerated from it |
-| `project <root> <target> [--policy flat\|progressive] [--link absolute\|relative] [--node N]` | **deploy** a tree into a skills dir as symlinks: `progressive` surfaces root + first-layer branches (the former `link_tree`); `flat` projects a volume's tome rows + holder so every held framework auto-discovers top-level (the former nomicon-atomize) |
+| `project <root> <target> [--policy flat\|progressive] [--link absolute\|relative] [--node N]` | **deploy** a tree into a skills dir as symlinks: `progressive` surfaces root + first-layer branches (the former `link_tree`); `flat` projects a volume's tome rows + holder so every held framework auto-discovers top-level (the former nomicon-atomize). Projecting is an install, so it localizes the tree's breadcrumbs first |
+| `relink <root> [--localize]` | rewrite only the breadcrumb paths: **portable** (the default and the shipped form — relative to each node's folder, no machine's path in any file) or `--localize` (absolute for this machine — the install-time step) |
 | `cohere <root>` | report drift between the on-disk tree and its coherent shape |
-| `emit <root> [--root-forest]` | re-cohere in place; `--root-forest` tree-ifies a bare forest (lossless, journaled) |
+| `emit <root> [--root-forest] [--localize]` | re-cohere in place; `--root-forest` tree-ifies a bare forest (lossless, journaled); breadcrumbs portable unless `--localize` |
 | `unemit <root>` | reverse the last `emit`, byte-for-byte |
 | `discover` · `validate` · `build` · `notify` · `watch` | read a tree · gate breadcrumb-resolvability · materialize from a manifest · write the notification rule · run the decoherence cron |
 
@@ -115,6 +124,12 @@ Two papers document the project:
 > arXiv submission is **pending an endorser**.
 
 ## Changelog
+
+### v0.4.0 — 2026-10-23
+- **Trees ship portable.** Every breadcrumb names its child relative to the node's folder (the folder holding the SKILL.md's `.claude/`), and the manifest stores `skill_src` relative to itself, so a materialized tree carries no machine's path and validates wherever it is copied — with no step. `materialize`, `emit` and `exchange build` take `localize=True` (`--localize`) to write absolute paths for one machine; the new `relink` rewrites only the paths, either way; `project` localizes the tree it projects (a projected tree is read through a symlink, where only an absolute path resolves). `validate` accepts both forms. 80 tests (7 new, in `tests/test_portable.py`).
+- **Developed in one source home and published here.** This repository and PyPI `agent-skilltree` are the published output of SkillTree's source home; changes arrive as releases, each with a version and an entry here.
+- Frontmatter quotes YAML-unsafe scalars (#1), merged after 0.3.0 and not yet released.
+- The figure script writes beside itself instead of to a fixed folder; a test comment names the author by role.
 
 ### v0.3.0 — 2026-07-09
 - **The tome bind ops (SkillVolume/SkillTome).** A node can now HOLD frameworks: `TreeNode.frameworks`

@@ -107,7 +107,7 @@ def test_mixed_coord_flat_forest_is_still_a_bare_forest(tmp_path):
 def test_emit_is_lossless_and_reversible(tmp_path):
     """emit moves the WHOLE skill dir (baggage preserved, unlike the old body-only
     re-render) and journals it; unemit replays the journal backwards for an exact
-    round-trip. (Isaac's 'if we move it we have to cache what happened' requirement.)"""
+    round-trip. (the author's 'if we move it we have to cache what happened' requirement.)"""
     d = tmp_path / "proj"
     cs = d / ".claude" / "skills"
     (cs / "alpha").mkdir(parents=True)
