@@ -44,6 +44,23 @@
   ],
   "changelog": [
     {
+      "version": "v0.4.1",
+      "date": "2026-11-09",
+      "changes": [
+        "**The install line names this package.** `pip install agent-skilltree`; the name `skilltree` on PyPI is another project's. The package and the plugin both read 0.4.1."
+      ]
+    },
+    {
+      "version": "v0.4.0",
+      "date": "2026-10-23",
+      "changes": [
+        "**Trees ship portable.** Every breadcrumb names its child relative to the node's folder (the folder holding the SKILL.md's `.claude/`), and the manifest stores `skill_src` relative to itself, so a materialized tree carries no machine's path and validates wherever it is copied \u2014 with no step. `materialize`, `emit` and `exchange build` take `localize=True` (`--localize`) to write absolute paths for one machine; the new `relink` rewrites only the paths, either way; `project` localizes the tree it projects (a projected tree is read through a symlink, where only an absolute path resolves). `validate` accepts both forms. 80 tests (7 new, in `tests/test_portable.py`).",
+        "**Developed in one source home and published here.** This repository and PyPI `agent-skilltree` are the published output of SkillTree's source home; changes arrive as releases, each with a version and an entry here.",
+        "Frontmatter quotes YAML-unsafe scalars (#1), merged after 0.3.0 and not yet released.",
+        "The figure script writes beside itself instead of to a fixed folder; a test comment names the author by role."
+      ]
+    },
+    {
       "version": "v0.3.0",
       "date": "2026-07-09",
       "changes": [

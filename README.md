@@ -6,6 +6,8 @@
 
 ⭐ 0 stars • 🕑 Updated 2026-11-05
 
+[PyPI](https://pypi.org/project/agent-skilltree/) • [Marketplace](https://github.com/sancovp/sancrev-marketplace)
+
 📦 Auto-published from the monorepo • [CHANGELOG](./CHANGELOG.md) • [sancovp/skilltree](https://github.com/sancovp/skilltree)
 
 <!-- SCALABLE-PUBLISHING:AUTOGEN END -->
@@ -34,10 +36,11 @@ So descending the tree is a **Read into the next node** — which loads exactly 
 
 ```bash
 pip install -e .          # from a clone
-# or: pip install skilltree
+# or: pip install agent-skilltree
 ```
 
-This installs the `skilltree` CLI.
+This installs the `skilltree` CLI. On PyPI the package is `agent-skilltree`; the name `skilltree` there is another
+project's.
 
 ## Quickstart
 
@@ -126,6 +129,9 @@ Two papers document the project:
 > arXiv submission is **pending an endorser**.
 
 ## Changelog
+
+### v0.4.1 — 2026-11-09
+- **The install line names this package.** `pip install agent-skilltree`; the name `skilltree` on PyPI is another project's. The package and the plugin both read 0.4.1.
 
 ### v0.4.0 — 2026-10-23
 - **Trees ship portable.** Every breadcrumb names its child relative to the node's folder (the folder holding the SKILL.md's `.claude/`), and the manifest stores `skill_src` relative to itself, so a materialized tree carries no machine's path and validates wherever it is copied — with no step. `materialize`, `emit` and `exchange build` take `localize=True` (`--localize`) to write absolute paths for one machine; the new `relink` rewrites only the paths, either way; `project` localizes the tree it projects (a projected tree is read through a symlink, where only an absolute path resolves). `validate` accepts both forms. 80 tests (7 new, in `tests/test_portable.py`).
