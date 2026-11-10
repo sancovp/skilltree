@@ -2,11 +2,9 @@
 
 <!-- SCALABLE-PUBLISHING:AUTOGEN START (managed block — do not edit between these markers) -->
 
-![License](https://img.shields.io/badge/license-MIT_License-blue.svg) ![Stars](https://img.shields.io/github/stars/sancovp/skilltree.svg?style=social) ![Updated](https://img.shields.io/badge/updated-2026_11_05-lightgrey.svg)
+![License](https://img.shields.io/badge/license-MIT_License-blue.svg) ![Stars](https://img.shields.io/github/stars/sancovp/skilltree.svg?style=social) ![Updated](https://img.shields.io/badge/updated-2026_11_09-lightgrey.svg)
 
-⭐ 0 stars • 🕑 Updated 2026-11-05
-
-[PyPI](https://pypi.org/project/agent-skilltree/) • [Marketplace](https://github.com/sancovp/sancrev-marketplace)
+⭐ 0 stars • 🕑 Updated 2026-11-09
 
 📦 Auto-published from the monorepo • [CHANGELOG](./CHANGELOG.md) • [sancovp/skilltree](https://github.com/sancovp/skilltree)
 
