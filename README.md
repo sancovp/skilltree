@@ -2,9 +2,9 @@
 
 <!-- SCALABLE-PUBLISHING:AUTOGEN START (managed block — do not edit between these markers) -->
 
-![License](https://img.shields.io/badge/license-MIT_License-blue.svg) ![Stars](https://img.shields.io/github/stars/sancovp/skilltree.svg?style=social) ![Updated](https://img.shields.io/badge/updated-2026_11_09-lightgrey.svg)
+![License](https://img.shields.io/badge/license-MIT_License-blue.svg) ![Stars](https://img.shields.io/github/stars/sancovp/skilltree.svg?style=social) ![Updated](https://img.shields.io/badge/updated-2026_11_10-lightgrey.svg)
 
-⭐ 0 stars • 🕑 Updated 2026-11-09
+⭐ 0 stars • 🕑 Updated 2026-11-10
 
 📦 Auto-published from the monorepo • [CHANGELOG](./CHANGELOG.md) • [sancovp/skilltree](https://github.com/sancovp/skilltree)
 
